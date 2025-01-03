@@ -4,6 +4,8 @@ services:
       context: .
     container_name: sisyphus_django
     command: /bin/bash
+    links:
+      - postgres:postgres
     ports:
       - 8000:8000
     restart: unless-stopped
@@ -12,3 +14,14 @@ services:
     volumes:
       - ./:/usr/app
     working_dir: /usr/app
+  postgres:
+    image: postgres:latest
+    container_name: sisyphus_postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
