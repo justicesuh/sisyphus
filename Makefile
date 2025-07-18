@@ -1,3 +1,8 @@
+ifneq (,$(wildcard ./.env))
+	include .env
+	export
+endif
+
 NAME := sisyphus
 
 PORT := 8000
@@ -33,3 +38,7 @@ lint:
 .PHONY: shell
 shell:
 	docker exec -it ${NAME}_django /bin/bash
+
+.PHONY: superuser
+superuser:
+	docker exec -it ${NAME}_django python manage.py shell -c "from sisyphus.users.models import User; User.objects.create_superuser('$(DJANGO_ADMIN_EMAIL)', '$(DJANGO_ADMIN_PASSWORD)')"
