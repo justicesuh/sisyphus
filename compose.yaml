@@ -3,6 +3,7 @@ services:
     build: .
     container_name: sisyphus_django
     command: /bin/bash
+    env_file: .env
     links:
       - postgres:postgres
     ports:
