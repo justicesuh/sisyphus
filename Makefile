@@ -26,6 +26,10 @@ migrations:
 migrate:
 	docker exec -it ${NAME}_django python manage.py migrate
 
+.PHONY: lint
+lint:
+	docker exec -it ${NAME}_django flake8 ${NAME}
+
 .PHONY: shell
 shell:
 	docker exec -it ${NAME}_django /bin/bash
