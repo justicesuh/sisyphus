@@ -92,6 +92,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'sisyphus.urls'
 
+SEARCH_PROXY = env('SEARCH_PROXY')
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

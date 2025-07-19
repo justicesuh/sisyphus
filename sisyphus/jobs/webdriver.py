@@ -11,14 +11,23 @@ logger = logging.getLogger(__name__)
 
 
 class Firefox:
-    def __init__(self):
+    def __init__(self, proxy):
         self.options = webdriver.FirefoxOptions()
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--headless')
 
         self.service = Service(executable_path='/usr/local/bin/geckodriver')
 
-        self.seleniumwire_options = None
+        if proxy is not None:
+            self.seleniumwire_options = {
+                'proxy': {
+                    'http': proxy,
+                    'https': proxy,
+                    'no_proxy': 'localhost,127.0.0.1',
+                }
+            }
+        else:
+            self.seleniumwire_options = None
 
         self.create_driver()
 
