@@ -111,6 +111,10 @@ class Job(UUIDModel):
         event.save()
         self.save()
 
+    def dismiss(self, reason):
+        self.update_status(Job.DISMISSED)
+        self.add_note(reason)
+
     def save(self, *args, **kwargs):
         self.update_status(self.status)
         super().save(*args, **kwargs)
