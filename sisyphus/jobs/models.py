@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.db import models
 from django.utils import timezone
 
@@ -34,6 +36,46 @@ class Location(UUIDModel):
 
     def __str__(self):
         return self.name
+
+
+class JobManager(models.Manager):
+    def add_job(self, job: dict, search) -> bool:
+        company, _ = Company.objects.get_or_create(
+            url=job['company_url'],
+            defaults={
+                'name': job['company'],
+            }
+        )
+        if company.banned:
+            return False
+
+        location = None
+        if job['location'] is not None:
+            location, _ = Location.objects.get_or_create(
+                name=job['location'],
+            )
+
+        _, created = self.get_or_create(
+            url=job['url'],
+            defaults={
+                'company': company,
+                'title': job['title'],
+                'location': location,
+                'date_posted': timezone.make_aware(datetime.strptime(job['date_posted'], '%Y-%m-%d')).date(),
+                'date_found': timezone.make_aware(datetime.strptime(job['date_found'], '%Y-%m-%d')).date(),
+                'search': search,
+                'flexibility': search.flexibility,
+            }
+        )
+        return created
+
+    def add_jobs(self, jobs: list[dict], search) -> int:
+        count = 0
+        for job in jobs:
+            created = self.add_job(job, search)
+            if created:
+                count += 1
+        return count
 
 
 class Job(UUIDModel):
@@ -84,6 +126,8 @@ class Job(UUIDModel):
 
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=INTERESTED)
     date_applied = models.DateField(null=True, blank=True)
+
+    objects = JobManager()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
