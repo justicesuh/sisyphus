@@ -1,3 +1,5 @@
+import time
+
 from selenium.webdriver.firefox.service import Service
 from seleniumwire import webdriver
 
@@ -38,6 +40,19 @@ class Firefox:
         if response is None or response.status_code in [403, 404, 429, 500, 501, 502, 503, 504]:
             return None
         return response
+
+    def get_with_retry(self, url, retries=8, backoff_factor=1):
+        for i in range(retries):
+            try:
+                response = self.get(url)
+                if response is not None:
+                    return response
+                self.create_driver()
+            except Exception:
+                self.create_driver()
+            backoff = backoff_factor * (2 ** i)
+            time.sleep(backoff)
+        return None
 
     def quit(self):
         if hasattr(self, 'driver'):
