@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class Firefox:
-    def __init__(self, proxy):
+    def __init__(self, proxy, request_interceptor=None, response_processor=None):
+        self.request_interceptor = request_interceptor
+        self.response_processor = response_processor
+
         self.options = webdriver.FirefoxOptions()
         self.options.add_argument('--no-sandbox')
         self.options.add_argument('--headless')
@@ -40,6 +43,8 @@ class Firefox:
             service=self.service,
             seleniumwire_options=self.seleniumwire_options
         )
+        if self.request_interceptor is not None:
+            self.driver.request_interceptor = self.request_interceptor
 
     def get_last_response(self):
         request = self.driver.requests[-1] if self.driver.requests else None
@@ -50,7 +55,10 @@ class Firefox:
     def get(self, url):
         logger.info(f'GET {url}')
         self.driver.get(url)
-        response = self.get_last_response()
+        if self.response_processor is not None:
+            response = self.response_processor(self.driver.requests)
+        else:
+            response = self.get_last_response()
         if response is not None:
             self.last_status_code = response.status_code
         if response is None or response.status_code in [403, 404, 429, 500, 501, 502, 503, 504]:
