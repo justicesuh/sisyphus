@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from sisyphus.jobs.models import Job
 from sisyphus.search.models import Search
@@ -82,3 +83,71 @@ class LinkedInParser(BaseParser):
             logger.info('Setting page count to 1.')
             return 1
         return (count // self.JOBS_PER_PAGE) + 1
+
+    def parse_job(self, div) -> dict | None:
+        error = None
+        job = {}
+
+        try:
+            company_link = div.find('h4', {'class': 'base-search-card__subtitle'}).find('a')
+            job['company'] = company_link.text.strip()
+            url = company_link['href']
+            if '?' in url:
+                url = url.split('?', 1)[0]
+            job['company_url'] = url
+        except Exception:
+            error = 'company'
+            logger.error('Error parsing company information.')
+
+        try:
+            job['title'] = div.find('h3', {'class': 'base-search-card__title'}).text.strip()
+        except Exception:
+            error = 'title'
+            logger.error('Error parsing job title.')
+
+        try:
+            url = div.find('a', {'class': 'base-card__full-link'})['href']
+            if '?' in url:
+                url = url.split('?', 1)[0]
+            sindex = url.rindex('/')
+            dindex = url.rindex('-')
+            job['url'] = url[:sindex + 1] + url[dindex + 1:] + '/'
+        except Exception:
+            error = 'url'
+            logger.error('Error parsing job url.')
+
+        try:
+            job['location'] = div.find('span', {'class': 'job-search-card__location'}).text.strip()
+        except Exception:
+            job['location'] = None
+
+        try:
+            time = div.find('time', {'class': 'job-search-card__listdate'})
+            if time is None:
+                time = div.find('time', {'class': 'job-search-card__listdate--new'})
+            job['date_posted'] = time['datetime']
+        except Exception:
+            error = 'date_posted'
+            logger.error('Error parsing job post date.')
+
+        job['date_found'] = datetime.now().strftime('%Y-%m-%d')
+
+        if error is not None:
+            return None
+        return job
+
+    def parse(self, search: Search, page=1) -> list[dict]:
+        jobs = []
+
+        url = self.get_linkedin_url('/jobs-guest/jobs/api/seeMoreJobPostings/', search, page)
+        response = self.firefox.get_with_retry(url)
+        if response is None:
+            logger.info(f'Response for {url} is None.')
+            return jobs
+
+        for div in self.firefox.soupify().find_all('div', {'class': 'job-search-card'}):
+            job = self.parse_job(div)
+            if job is not None:
+                jobs.append(job)
+
+        return jobs
