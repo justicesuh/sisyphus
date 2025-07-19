@@ -1,6 +1,7 @@
 import logging
 import time
 
+from bs4 import BeautifulSoup
 from selenium.webdriver.firefox.service import Service
 from seleniumwire import webdriver
 
@@ -56,11 +57,15 @@ class Firefox:
                 self.create_driver()
             except Exception:
                 self.create_driver()
-            logger.info(f'Sleeping for {backoff} seconds.')
             backoff = backoff_factor * (2 ** i)
+            logger.info(f'Sleeping for {backoff} seconds.')
             time.sleep(backoff)
         logger.info(f'Max retries for {url} exceeded.')
         return None
+
+    def soupify(self):
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        return soup
 
     def quit(self):
         if hasattr(self, 'driver'):
