@@ -1,8 +1,29 @@
+from datetime import timedelta
+
 from django.db import models
+from django.db.models import ExpressionWrapper, F, Q
 from django.utils import timezone
 
 from sisyphus.core.models import UUIDModel
 from sisyphus.jobs.models import Location, Job
+
+
+class SearchManager(models.Manager):
+    def stale(self):
+        # tolerance was originally calculated by
+        # subtracting one hour from full day (24 - 1)
+        #
+        # shortcut is to assume same percentage tolerance
+        # for each period scale ((24 - 1) / 24 ~= 0.96)
+        return Search.objects.annotate(
+            window=ExpressionWrapper(
+                F('period') * 0.96,
+                output_field=models.DurationField()
+            )
+        ).filter(
+            Q(last_executed__isnull=True) |
+            Q(last_executed__lt=timezone.now() - (timedelta(seconds=1) * F('window')))
+        )
 
 
 class Search(UUIDModel):
@@ -29,6 +50,8 @@ class Search(UUIDModel):
 
     last_executed = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
+    objects = SearchManager()
 
     class Meta:
         verbose_name = 'search'
