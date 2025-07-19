@@ -151,3 +151,33 @@ class LinkedInParser(BaseParser):
                 jobs.append(job)
 
         return jobs
+
+    def populate_job(self, job: Job):
+        response = self.firefox.get_with_retry(job.url)
+        if response is None:
+            logger.info(f'Response for {job.url} is None.')
+            if self.firefox.last_status_code == 404:
+                logger.info('Job not found, marking as dismissed.')
+                job.dismiss('Job not found.')
+            return
+
+        soup = self.firefox.soupify()
+        job.raw_html = str(soup)
+
+        try:
+            job.description = soup.find('div', {'class': 'show-more-less-html__markup'}).decode_contents().strip()
+        except Exception:
+            logger.error('Error parsing job description.')
+
+        try:
+            code = soup.find('code', {'id': 'applyUrl'})
+            if code is not None:
+                job.easy_apply = False
+            else:
+                job.easy_apply = True
+        except Exception:
+            logger.warn('Failed to parse easy application status, Defaulting to False.')
+            job.easy_apply = False
+
+        job.populated = True
+        job.save()
