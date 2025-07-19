@@ -77,6 +77,9 @@ class JobManager(models.Manager):
                 count += 1
         return count
 
+    def banned(self):
+        return self.filter(company__banned=True).exclude(status=Job.DISMISSED)
+
 
 class Job(UUIDModel):
     HYBRID = 'hybrid'
