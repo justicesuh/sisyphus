@@ -1,7 +1,12 @@
+import logging
 import time
 
 from selenium.webdriver.firefox.service import Service
 from seleniumwire import webdriver
+
+
+logging.getLogger('seleniumwire').setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class Firefox:
@@ -33,6 +38,7 @@ class Firefox:
         return None
 
     def get(self, url):
+        logger.info(f'GET {url}')
         self.driver.get(url)
         response = self.get_last_response()
         if response is not None:
@@ -50,8 +56,10 @@ class Firefox:
                 self.create_driver()
             except Exception:
                 self.create_driver()
+            logger.info(f'Sleeping for {backoff} seconds.')
             backoff = backoff_factor * (2 ** i)
             time.sleep(backoff)
+        logger.info(f'Max retries for {url} exceeded.')
         return None
 
     def quit(self):
