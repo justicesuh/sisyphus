@@ -1,5 +1,6 @@
 import logging
 import time
+from copy import deepcopy
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.firefox.service import Service
@@ -41,7 +42,7 @@ class Firefox:
         self.driver = webdriver.Firefox(
             options=self.options,
             service=self.service,
-            seleniumwire_options=self.seleniumwire_options
+            seleniumwire_options=deepcopy(self.seleniumwire_options)
         )
         if self.request_interceptor is not None:
             self.driver.request_interceptor = self.request_interceptor
