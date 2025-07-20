@@ -81,7 +81,7 @@ class JobManager(models.Manager):
         return self.filter(company__banned=True).exclude(status=Job.DISMISSED)
 
     def next_job(self):
-        return self.filter(status=Job.INTERESTED, populated=True).order_by(
+        return self.filter(status=Job.SAVED, populated=True).order_by(
             '-easy_apply',
             '-date_posted',
         ).first()
@@ -92,8 +92,10 @@ class Job(UUIDModel):
     ONSITE = 'onsite'
     REMOTE = 'remote'
 
-    INTERESTED = 'interested'
+    NEW = 'new'
+    SAVED = 'saved'
     DISMISSED = 'dismissed'
+    EXPIRED = 'expired'
     APPLIED = 'applied'
     REJECTED = 'rejected'
     INTERVIEW = 'interview'
@@ -108,8 +110,10 @@ class Job(UUIDModel):
     )
 
     STATUS_CHOICES = (
-        (INTERESTED, INTERESTED.capitalize()),
+        (NEW, NEW.capitalize()),
+        (SAVED, SAVED.capitalize()),
         (DISMISSED, DISMISSED.capitalize()),
+        (EXPIRED, EXPIRED.capitalize()),
         (APPLIED, APPLIED.capitalize()),
         (REJECTED, REJECTED.capitalize()),
         (INTERVIEW, INTERVIEW.capitalize()),
@@ -133,7 +137,7 @@ class Job(UUIDModel):
     description = models.TextField(null=True, blank=True)
     raw_html = models.TextField(null=True, blank=True)
 
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=INTERESTED)
+    status = models.CharField(max_length=9, choices=STATUS_CHOICES, default=NEW)
     date_applied = models.DateField(null=True, blank=True)
 
     objects = JobManager()
