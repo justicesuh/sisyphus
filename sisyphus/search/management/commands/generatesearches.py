@@ -12,6 +12,11 @@ class Command(BaseCommand):
     def handle(self, **options):
         search_terms = [
             'python',
+            'django',
+            'flask',
+            'fastapi',
+            'founding engineer python',
+            'technical cofounder python',
         ]
         combinations = list(itertools.product(list(dict(Search.PERIOD_CHOICES).keys()), [True, False]))
         count = 0
