@@ -80,6 +80,12 @@ class JobManager(models.Manager):
     def banned(self):
         return self.filter(company__banned=True).exclude(status=Job.DISMISSED)
 
+    def next_job(self):
+        return self.filter(status=Job.INTERESTED, populated=True).order_by(
+            '-easy_apply',
+            '-date_posted',
+        ).first()
+
 
 class Job(UUIDModel):
     HYBRID = 'hybrid'

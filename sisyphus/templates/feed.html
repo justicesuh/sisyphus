@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center gx-3 gy-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-title"><a href="{{ job.company.url }}" target="_blank">{{ job.company }}</a></h6>
+                        <h5 class="card-title">{{ job.title }}</h5>
+                    </div>
+                    <div>
+                        <a class="btn btn-primary" href="{{ job.url }}" target="_blank" role="button">{% if job.easy_apply %}Easy Apply{% else %}Apply{% endif %}</a>
+                    </div>                    
+                </div>
+                <div>
+                    {% if job.populated %}
+                    {{ job.description }}
+                    {% endif %}
+                </div>                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

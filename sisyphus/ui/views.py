@@ -4,10 +4,13 @@ from django.contrib.auth import authenticate, login as user_login, logout as use
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
+from sisyphus.jobs.models import Job
+
 
 @login_required
 def index(request):
-    return render(request, 'index.html')
+    job = Job.objects.next_job()
+    return render(request, 'feed.html', {'job': job})
 
 
 def login(request):
