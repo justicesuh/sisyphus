@@ -11,11 +11,12 @@ class Rule(UUIDModel):
         (CONTAINS, CONTAINS.capitalize()),
     )
 
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True, blank=True)
     field = models.CharField(max_length=255)
     operator = models.CharField(max_length=8, choices=OPERATOR_CHOICES, default=CONTAINS)
     value = models.CharField(max_length=255)
+    populated = models.BooleanField(null=True, blank=True)
     status = models.CharField(max_length=9, choices=Job.STATUS_CHOICES, default=Job.NEW)
 
     def __str__(self):
