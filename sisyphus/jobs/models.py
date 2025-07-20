@@ -81,7 +81,7 @@ class JobManager(models.Manager):
         return self.filter(company__banned=True).exclude(status=Job.DISMISSED)
 
     def next_job(self):
-        return self.filter(status=Job.SAVED, populated=True).order_by(
+        return self.filter(status=Job.NEW, populated=True).order_by(
             '-easy_apply',
             '-date_posted',
         ).first()
