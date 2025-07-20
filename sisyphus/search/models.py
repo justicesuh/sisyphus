@@ -66,3 +66,9 @@ class Search(UUIDModel):
     def update_last_executed(self):
         self.last_executed = timezone.now()
         self.save()
+
+    def __str__(self):
+        period = dict(self.PERIOD_CHOICES)[self.period]
+        easy_apply = 'Yes' if self.easy_apply else 'No'
+        flexibility = dict(Job.FLEXIBILITY_CHOICES)[self.flexibility]
+        return f'{self.keywords} | {period} | Easy Apply: {easy_apply} | {flexibility}'
