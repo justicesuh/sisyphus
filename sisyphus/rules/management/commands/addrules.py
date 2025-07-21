@@ -15,3 +15,18 @@ class Command(BaseCommand):
                 'status': Job.EXPIRED
             }
         )
+
+    terms = [
+        'intern',
+        'ruby on rails',
+    ]
+    for term in terms:
+        Rule.objects.get_or_create(
+            name=f'Remove {term}',
+            defaults={
+                'field': 'title',
+                'operator': Rule.CONTAINS,
+                'value': term,
+                'status': Job.DISMISSED,
+            }
+        )

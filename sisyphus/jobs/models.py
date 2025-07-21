@@ -152,7 +152,7 @@ class Job(UUIDModel):
 
     def update_status(self, new_status: str):
         if self.cached_status == new_status:
-            return
+            return False
         self.status = new_status
         event = Event.objects.create(
             event_type=Event.STATUS,
@@ -166,6 +166,7 @@ class Job(UUIDModel):
         if self.status == Job.APPLIED:
             self.date_applied = timezone.now().date()
         self.save()
+        return True
 
     def add_note(self, note: str):
         event = Event.objects.create(event_type=Event.NOTE, job=self, note=note)
