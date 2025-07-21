@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center gx-3 gy-3">
+    {% for metric in metrics %}
+    <div class="col-md-{{ metric.width }}">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ metric.title }}</h5>
+                <p class="display-6 fw-bold text-{{ metric.color }}">{{ metric.value }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

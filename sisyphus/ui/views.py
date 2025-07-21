@@ -70,6 +70,12 @@ def saved(request):
     return render(request, 'feed.html', {'actions': actions, 'job': job})
 
 
+@login_required
+def metrics(request):
+    metrics = Job.objects.metrics()
+    return render(request, 'metrics.html', {'metrics': metrics})
+
+
 def login(request):
     next_url = request.GET.get('next') or request.POST.get('next')
 

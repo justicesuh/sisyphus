@@ -80,6 +80,54 @@ class JobManager(models.Manager):
     def banned(self):
         return self.filter(company__banned=True).exclude(status=Job.DISMISSED)
 
+    def calculate_metric(self, title: str, width: int, color: str, status):
+        if status is None:
+            value = Job.objects.filter(status=Job.NEW).count()
+        elif status is True:
+            value = Job.objects.filter(status=Job.NEW, populated=True, easy_apply=True).count()
+        elif status is False:
+            value = Job.objects.filter(status=Job.NEW, populated=True, easy_apply=False).count()
+        elif status == Job.APPLIED:
+            value = Job.objects.filter(date_applied__isnull=False).count()
+        else:
+            value = Job.objects.filter(status=status).count()
+        return {
+            'title': title,
+            'width': width,
+            'color': color,
+            'value': value,
+        }
+
+    def metrics(self):
+        metrics = []
+        statuses = [
+            (None, 'dark'),
+            (Job.DISMISSED, 'danger'),
+            (True, 'primary'),
+            (False, 'warning'),
+            (Job.APPLIED, 'success'),
+            (Job.INTERVIEW, 'info'),
+        ]
+        for status, color in statuses:
+            if status is None:
+                title = 'Available'
+            elif status is True:
+                title = 'Easy Apply'
+            elif status is False:
+                title = 'External'
+            else:
+                title = status.capitalize()
+                if status == Job.OFFER:
+                    title += 's'
+                elif status == Job.INTERVIEW:
+                    title += 'ing'
+            if status is None or status == Job.DISMISSED:
+                width = 6
+            else:
+                width = 3
+            metrics.append(self.calculate_metric(title, width, color, status))
+        return metrics
+
     def next_job(self, saved=False):
         status = Job.SAVED if saved else Job.NEW
         return self.filter(status=status, populated=True).order_by(
