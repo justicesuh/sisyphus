@@ -86,6 +86,9 @@ class JobManager(models.Manager):
             '-date_posted',
         ).first()
 
+    def field_contains(self, field, value):
+        return self.filter(**{f'{field}__icontains': value}).exclude(status=Job.DISMISSED)
+
 
 class Job(UUIDModel):
     HYBRID = 'hybrid'
