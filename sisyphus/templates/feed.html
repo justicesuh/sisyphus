@@ -5,6 +5,9 @@
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body">
+                {% if not job %}
+                <h3>No jobs remaining</h3>
+                {% else %}
                 <div class="d-flex justify-content-between align-items-start">
                     <div>
                         <h6 class="card-title"><a href="{{ job.company.url }}" target="_blank">{{ job.company }}</a></h6>
@@ -27,7 +30,8 @@
                     {% if job.populated %}
                     {{ job.description|safe_like }}
                     {% endif %}
-                </div>                
+                </div>
+                {% endif %}            
             </div>
         </div>
     </div>
