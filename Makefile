@@ -42,3 +42,11 @@ shell:
 .PHONY: superuser
 superuser:
 	docker exec -it ${NAME}_django python manage.py shell -c "from sisyphus.users.models import User; User.objects.create_superuser('$(DJANGO_ADMIN_EMAIL)', '$(DJANGO_ADMIN_PASSWORD)')"
+
+.PHONY: search
+search:
+	docker exec -it ${NAME}_django python manage.py search
+
+.PHONY: populate
+populate:
+	docker exec -it ${NAME}_django python manage.py populate
