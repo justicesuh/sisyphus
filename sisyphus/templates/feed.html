@@ -14,6 +14,15 @@
                         <a class="btn btn-primary" href="{{ job.url }}" target="_blank" role="button">{% if job.easy_apply %}Easy Apply{% else %}Apply{% endif %}</a>
                     </div>                    
                 </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="btn-group w-100 my-2">
+                        {% for action in actions %}
+                        <button type="submit" class="btn btn-{{ action.btn }}" name="action" value="{{ action.value }}">{{ action.text }}</button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="uuid" value="{{ job.uuid }}" />
+                </form>
                 <div>
                     {% if job.populated %}
                     {{ job.description|safe_like }}

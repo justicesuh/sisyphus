@@ -9,8 +9,36 @@ from sisyphus.jobs.models import Job
 
 @login_required
 def index(request):
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        uuid = request.POST.get('uuid')
+        job = Job.objects.get(uuid=uuid)
+        job.update_status(action)
+
+    actions = [
+        {
+            'text': 'Applied',
+            'value': Job.APPLIED,
+            'btn': 'success',
+        },
+        {
+            'text': 'Expired',
+            'value': Job.EXPIRED,
+            'btn': 'warning',
+        },
+        {
+            'text': 'Dismissed',
+            'value': Job.DISMISSED,
+            'btn': 'danger',
+        },
+        {
+            'text': 'Save Job',
+            'value': Job.SAVED,
+            'btn': 'info',
+        }
+    ]
     job = Job.objects.next_job()
-    return render(request, 'feed.html', {'job': job})
+    return render(request, 'feed.html', {'actions': actions, 'job': job})
 
 
 def login(request):
