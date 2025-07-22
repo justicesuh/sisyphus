@@ -19,6 +19,16 @@ class Command(BaseCommand):
     terms = [
         'intern',
         'ruby on rails',
+        'spring boot',
+        'power bi',
+        'splunk',
+        'data visualization',
+        'rust',
+        'kubernetes',
+        'data analyst',
+        'tableau',
+        'devops',
+        'devsecops',
     ]
     for term in terms:
         Rule.objects.get_or_create(
