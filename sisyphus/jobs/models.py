@@ -102,6 +102,7 @@ class JobManager(models.Manager):
         metrics = []
         statuses = [
             (None, 'dark'),
+            (Job.SAVED, 'info'),
             (Job.DISMISSED, 'danger'),
             (True, 'primary'),
             (False, 'warning'),
@@ -121,8 +122,8 @@ class JobManager(models.Manager):
                     title += 's'
                 elif status == Job.INTERVIEW:
                     title += 'ing'
-            if status is None or status == Job.DISMISSED:
-                width = 6
+            if status is None or status == Job.SAVED or status == Job.DISMISSED:
+                width = 4
             else:
                 width = 3
             metrics.append(self.calculate_metric(title, width, color, status))

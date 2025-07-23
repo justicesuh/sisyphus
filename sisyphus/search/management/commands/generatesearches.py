@@ -17,6 +17,8 @@ class Command(BaseCommand):
             'fastapi',
             'founding engineer python',
             'technical cofounder python',
+            'software engineer python',
+            'startup python',
         ]
         combinations = list(itertools.product(list(dict(Search.PERIOD_CHOICES).keys()), [True, False]))
         count = 0

@@ -29,6 +29,19 @@ class Command(BaseCommand):
         'tableau',
         'devops',
         'devsecops',
+        'salesforce',
+        'servicenow',
+        'sharepoint',
+        'angular',
+        'powerbi',
+        'c#',
+        '.net',
+        'support',
+        'php',
+        'frontend',
+        'front end',
+        'sdet',
+        'test',
     ]
     for term in terms:
         Rule.objects.get_or_create(
