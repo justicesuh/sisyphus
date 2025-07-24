@@ -42,6 +42,14 @@ class Command(BaseCommand):
         'front end',
         'sdet',
         'test',
+        'tutor',
+        'java',
+        'elixir',
+        'business',
+        'operations',
+        'analyst',
+        'front-end',
+        'qa engineer',
     ]
     for term in terms:
         Rule.objects.get_or_create(
@@ -51,5 +59,22 @@ class Command(BaseCommand):
                 'operator': Rule.CONTAINS,
                 'value': term,
                 'status': Job.DISMISSED,
+            }
+        )
+
+    save_terms = [
+        'python',
+        'django',
+        'fastapi',
+        'flask',
+    ]
+    for term in save_terms:
+        Rule.objects.get_or_create(
+            name=f'Save {term}',
+            defaults={
+                'field': 'title',
+                'operator': Rule.CONTAINS,
+                'value': term,
+                'status': Job.SAVED,
             }
         )
