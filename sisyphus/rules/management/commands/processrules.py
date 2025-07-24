@@ -17,6 +17,8 @@ class Command(BaseCommand):
                 jobs = Job.objects.field_contains(rule.field, rule.value)
                 count = 0
                 for job in jobs:
+                    if job.status != Job.NEW:
+                        continue
                     updated = job.update_status(rule.status)
                     if updated:
                         count += 1

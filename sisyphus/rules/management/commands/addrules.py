@@ -50,6 +50,13 @@ class Command(BaseCommand):
         'analyst',
         'front-end',
         'qa engineer',
+        'golang',
+        'react',
+        'ts/sci',
+        'okta',
+        'azure',
+        'databricks',
+        'elasticsearch',
     ]
     for term in terms:
         Rule.objects.get_or_create(
