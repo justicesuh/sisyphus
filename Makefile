@@ -14,6 +14,10 @@ down:
 lock:
 	docker exec -it sisyphus_django uv lock
 
+.PHONY: sync
+sync:
+	docker exec -it sisyphus_django uv sync --locked
+
 .PHONY: serve
 serve:
 	docker exec -it sisyphus_django uv run manage.py runserver 0.0.0.0:8000
