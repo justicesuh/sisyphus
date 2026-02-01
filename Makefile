@@ -10,6 +10,22 @@ up:
 down:
 	docker compose -p sisyphus down
 
+.PHONY: lock
+lock:
+	docker exec -it sisyphus_django uv lock
+
+.PHONY: serve
+serve:
+	docker exec -it sisyphus_django uv run manage.py runserver 0.0.0.0:8000
+
+.PHONY: migrations
+migrations:
+	docker exec -it sisyphus_django uv run manage.py makemigrations
+
+.PHONY: migrate
+migrate:
+	docker exec -it sisyphus_django uv run manage.py migrate
+
 .PHONY: shell
 shell:
-	docker exec -it sisyphus_python /bin/bash
+	docker exec -it sisyphus_django /bin/bash
