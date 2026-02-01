@@ -5,4 +5,5 @@ docs
 *.pyc
 *.pyo
 *.pyd
+.env
 README.md
