@@ -1,0 +1,11 @@
+services:
+  python:
+    build: .
+    container_name: sisyphus_python
+    command: /bin/bash
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./:/usr/app
+    working_dir: /usr/app
