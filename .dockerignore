@@ -1,0 +1,8 @@
+.git
+__pycache__
+db-data
+docs
+*.pyc
+*.pyo
+*.pyd
+README.md
