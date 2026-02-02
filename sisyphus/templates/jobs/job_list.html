@@ -5,7 +5,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Jobs</h1>
-    <span class="text-muted">{{ jobs|length }} jobs</span>
+    <span class="text-muted">{{ page.paginator.count }} jobs</span>
 </div>
 
 <div class="table-responsive">
@@ -21,7 +21,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for job in jobs %}
+            {% for job in page %}
             <tr>
                 <td><a href="{{ job.url }}" target="_blank">{{ job.title }}</a></td>
                 <td>{{ job.company.name }}</td>
@@ -48,4 +48,28 @@
         </tbody>
     </table>
 </div>
+
+{% if page.has_other_pages %}
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not page.has_previous %}disabled{% endif %}">
+            <a class="page-link" href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% endif %}">Previous</a>
+        </li>
+        {% for num in page.paginator.page_range %}
+            {% if page.number == num %}
+            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page.number|add:'-3' and num < page.number|add:'3' %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% elif num == 1 or num == page.paginator.num_pages %}
+            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            {% elif num == 2 or num == page.paginator.num_pages|add:'-1' %}
+            <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not page.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{% if page.has_next %}?page={{ page.next_page_number }}{% endif %}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
 {% endblock %}
