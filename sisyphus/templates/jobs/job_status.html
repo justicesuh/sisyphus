@@ -1,0 +1,9 @@
+<select id="job-status" name="status" class="form-select form-select-sm" style="width: auto;"
+        hx-post="{% url 'web:job_update_status' job.uuid %}"
+        hx-target="#job-status"
+        hx-swap="outerHTML"
+        hx-include="this">
+    {% for value, label in status_choices %}
+    <option value="{{ value }}" {% if job.status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+</select>

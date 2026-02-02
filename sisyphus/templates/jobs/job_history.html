@@ -1,0 +1,19 @@
+<div id="job-history">
+    {% if events %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">History</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for event in events %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <span>{{ event.get_old_status_display }} <i class="bi bi-arrow-right"></i> {{ event.get_new_status_display }}</span>
+                </div>
+                <small class="text-muted">{{ event.created_at|date:"M j, Y H:i" }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

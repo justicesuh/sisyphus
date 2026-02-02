@@ -1,0 +1,29 @@
+<select id="job-status" name="status" class="form-select form-select-sm" style="width: auto;"
+        hx-post="{% url 'web:job_update_status' job.uuid %}"
+        hx-target="#job-status"
+        hx-swap="outerHTML"
+        hx-include="this">
+    {% for value, label in status_choices %}
+    <option value="{{ value }}" {% if job.status == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+</select>
+
+<div id="job-history" hx-swap-oob="true">
+    {% if events %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0">History</h5>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for event in events %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <span>{{ event.get_old_status_display }} <i class="bi bi-arrow-right"></i> {{ event.get_new_status_display }}</span>
+                </div>
+                <small class="text-muted">{{ event.created_at|date:"M j, Y H:i" }}</small>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

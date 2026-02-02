@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 
-from sisyphus.jobs.models import Job
+from sisyphus.jobs.models import Job, JobNote
 
 
 @login_required
@@ -69,6 +69,8 @@ def job_detail(request, uuid):
     job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
     return render(request, 'jobs/job_detail.html', {
         'job': job,
+        'notes': job.notes.all(),
+        'events': job.events.all(),
         'status_choices': Job.Status.choices,
     })
 
@@ -83,5 +85,44 @@ def job_update_status(request, uuid):
 
     if new_status in Job.Status.values:
         job.update_status(new_status)
+
+    if request.htmx:
+        return render(request, 'jobs/job_status_with_history.html', {
+            'job': job,
+            'events': job.events.all(),
+            'status_choices': Job.Status.choices,
+        })
+
+    return redirect('web:job_detail', uuid=uuid)
+
+
+@login_required
+def job_add_note(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    job = get_object_or_404(Job, uuid=uuid)
+    text = request.POST.get('text', '').strip()
+
+    if text:
+        job.add_note(text)
+
+    if request.htmx:
+        return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
+
+    return redirect('web:job_detail', uuid=uuid)
+
+
+@login_required
+def job_delete_note(request, uuid, note_id):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    note = get_object_or_404(JobNote, id=note_id, job__uuid=uuid)
+    job = note.job
+    note.delete()
+
+    if request.htmx:
+        return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('web:job_detail', uuid=uuid)
