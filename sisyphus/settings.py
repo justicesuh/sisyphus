@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sisyphus.accounts',
+    'sisyphus.applications',
     'sisyphus.companies',
     'sisyphus.core',
     'sisyphus.jobs',

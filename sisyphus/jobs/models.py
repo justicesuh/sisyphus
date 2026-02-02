@@ -62,7 +62,7 @@ class Job(UUIDModel):
         event = JobEvent.objects.create(job=self, old_status=self.cached_status, new_status=self.status)
         self.cached_status = self.status
         self.date_status_changed = event.created_at
-        self.save(update_fields=['status', 'date_status_chaged'])
+        self.save(update_fields=['status', 'date_status_changed'])
 
 
 class JobEvent(UUIDModel):
