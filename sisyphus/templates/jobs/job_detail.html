@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - Sisyphus{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'web:job_list' %}">Jobs</a></li>
+        <li class="breadcrumb-item active">{{ job.title|truncatechars:50 }}</li>
+    </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1>{{ job.title }}</h1>
+        <h5 class="text-muted">{{ job.company.name }}</h5>
+    </div>
+    <a href="{{ job.url }}" target="_blank" class="btn btn-primary">
+        <i class="bi bi-box-arrow-up-right me-1"></i>View Original
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Description</h5>
+            </div>
+            <div class="card-body">
+                {% if job.description %}
+                <div class="job-description">{{ job.description|safe }}</div>
+                {% else %}
+                <p class="text-muted mb-0">No description available.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if job.notes.exists %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Notes</h5>
+            </div>
+            <div class="card-body">
+                {% for note in job.notes.all %}
+                <div class="{% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+                    <p class="mb-1">{{ note.text }}</p>
+                    <small class="text-muted">{{ note.created_at|date:"M j, Y H:i" }}</small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Details</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Status</span>
+                    <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% else %}bg-dark{% endif %}">
+                        {{ job.get_status_display }}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Location</span>
+                    <span>{{ job.location.name|default:"-" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Flexibility</span>
+                    {% if job.flexibility %}
+                    <span class="badge {% if job.flexibility == 'remote' %}bg-success{% elif job.flexibility == 'hybrid' %}bg-info{% else %}bg-secondary{% endif %}">
+                        {{ job.get_flexibility_display }}
+                    </span>
+                    {% else %}<span>-</span>{% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Easy Apply</span>
+                    <span>{% if job.easy_apply %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-muted"></i>{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Posted</span>
+                    <span>{{ job.date_posted|date:"M j, Y"|default:"-" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Found</span>
+                    <span>{{ job.date_found|date:"M j, Y"|default:"-" }}</span>
+                </li>
+            </ul>
+        </div>
+
+        {% if job.events.exists %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">History</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for event in job.events.all %}
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ event.get_old_status_display }} <i class="bi bi-arrow-right"></i> {{ event.get_new_status_display }}</span>
+                    </div>
+                    <small class="text-muted">{{ event.created_at|date:"M j, Y H:i" }}</small>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

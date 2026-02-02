@@ -73,7 +73,7 @@
         <tbody>
             {% for job in page %}
             <tr>
-                <td><a href="{{ job.url }}" target="_blank">{{ job.title }}</a></td>
+                <td><a href="{% url 'web:job_detail' job.uuid %}">{{ job.title }}</a></td>
                 <td>{{ job.company.name }}</td>
                 <td>{{ job.location.name|default:"-" }}</td>
                 <td>

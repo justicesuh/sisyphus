@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from sisyphus.jobs.models import Job
 
@@ -61,3 +61,9 @@ def job_list(request):
         'current_flexibility': flexibility,
         'current_sort': sort,
     })
+
+
+@login_required
+def job_detail(request, uuid):
+    job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
+    return render(request, 'jobs/job_detail.html', {'job': job})
