@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'sisyphus.accounts',
     'sisyphus.companies',
     'sisyphus.core',
+    'sisyphus.jobs',
 ]
 
 MIDDLEWARE = [
