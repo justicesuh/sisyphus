@@ -166,3 +166,13 @@ def company_list(request):
         'current_banned': banned,
         'current_sort': sort,
     })
+
+
+@login_required
+def company_detail(request, uuid):
+    company = get_object_or_404(Company, uuid=uuid)
+    jobs = company.jobs.select_related('location').order_by('-date_posted')
+    return render(request, 'companies/company_detail.html', {
+        'company': company,
+        'jobs': jobs,
+    })

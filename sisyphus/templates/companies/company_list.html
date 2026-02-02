@@ -46,7 +46,7 @@
         <tbody>
             {% for company in page %}
             <tr>
-                <td>{{ company.name }}</td>
+                <td><a href="{% url 'web:company_detail' company.uuid %}">{{ company.name }}</a></td>
                 <td>
                     {% if company.website %}
                     <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website|truncatechars:40 }}</a>
