@@ -46,32 +46,32 @@
 </div>
 
 <div class="d-flex justify-content-center gap-3">
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
+    <form id="form-dismiss" method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="dismissed">
         <button type="submit" class="btn btn-outline-danger btn-lg px-4">
-            <i class="bi bi-x-circle me-1"></i>Dismiss
+            <i class="bi bi-x-circle me-1"></i>Dismiss <kbd class="ms-1">D</kbd>
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
+    <form id="form-expired" method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="expired">
         <button type="submit" class="btn btn-secondary btn-lg px-4">
-            <i class="bi bi-hourglass-bottom me-1"></i>Expired
+            <i class="bi bi-hourglass-bottom me-1"></i>Expired <kbd class="ms-1">X</kbd>
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
+    <form id="form-saved" method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="saved">
         <button type="submit" class="btn btn-success btn-lg px-4">
-            <i class="bi bi-bookmark-fill me-1"></i>Save
+            <i class="bi bi-bookmark-fill me-1"></i>Save <kbd class="ms-1">S</kbd>
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
+    <form id="form-applied" method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="applied">
         <button type="submit" class="btn btn-primary btn-lg px-4">
-            <i class="bi bi-send-fill me-1"></i>Applied
+            <i class="bi bi-send-fill me-1"></i>Applied <kbd class="ms-1">A</kbd>
         </button>
     </form>
 </div>
@@ -84,5 +84,30 @@
     <p class="text-muted">No new jobs to review.</p>
     <a href="{% url 'web:job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if job %}
+<script>
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch(e.key.toLowerCase()) {
+        case 'd':
+            document.getElementById('form-dismiss').submit();
+            break;
+        case 'x':
+            document.getElementById('form-expired').submit();
+            break;
+        case 's':
+            document.getElementById('form-saved').submit();
+            break;
+        case 'a':
+            document.getElementById('form-applied').submit();
+            break;
+    }
+});
+</script>
 {% endif %}
 {% endblock %}
