@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 
+from sisyphus.companies.models import Company
 from sisyphus.jobs.models import Job, JobNote
 
 
@@ -22,6 +23,15 @@ SORT_OPTIONS = {
     '-date_posted': '-date_posted',
     'status': 'status',
     '-status': '-status',
+}
+
+COMPANY_SORT_OPTIONS = {
+    'name': 'name',
+    '-name': '-name',
+    'created_at': 'created_at',
+    '-created_at': '-created_at',
+    'job_count': 'job_count',
+    '-job_count': '-job_count',
 }
 
 
@@ -126,3 +136,37 @@ def job_delete_note(request, uuid, note_id):
         return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('web:job_detail', uuid=uuid)
+
+
+@login_required
+def company_list(request):
+    from django.db.models import Count, Q
+
+    companies = Company.objects.annotate(job_count=Count('jobs'))
+
+    search = request.GET.get('q', '').strip()
+    if search:
+        companies = companies.filter(Q(name__icontains=search) | Q(website__icontains=search))
+
+    banned = request.GET.get('banned')
+    if banned == 'yes':
+        companies = companies.filter(is_banned=True)
+    elif banned == 'no':
+        companies = companies.filter(is_banned=False)
+
+    sort = request.GET.get('sort', 'name')
+    if sort in COMPANY_SORT_OPTIONS:
+        companies = companies.order_by(COMPANY_SORT_OPTIONS[sort])
+    else:
+        sort = 'name'
+        companies = companies.order_by('name')
+
+    paginator = Paginator(companies, 25)
+    page = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'companies/company_list.html', {
+        'page': page,
+        'current_search': search,
+        'current_banned': banned,
+        'current_sort': sort,
+    })
