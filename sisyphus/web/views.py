@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.shortcuts import get_object_or_404, render
+from django.http import HttpResponseNotAllowed
+from django.shortcuts import get_object_or_404, redirect, render
 
 from sisyphus.jobs.models import Job
 
@@ -66,4 +67,21 @@ def job_list(request):
 @login_required
 def job_detail(request, uuid):
     job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
-    return render(request, 'jobs/job_detail.html', {'job': job})
+    return render(request, 'jobs/job_detail.html', {
+        'job': job,
+        'status_choices': Job.Status.choices,
+    })
+
+
+@login_required
+def job_update_status(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    job = get_object_or_404(Job, uuid=uuid)
+    new_status = request.POST.get('status')
+
+    if new_status in Job.Status.values:
+        job.update_status(new_status)
+
+    return redirect('web:job_detail', uuid=uuid)

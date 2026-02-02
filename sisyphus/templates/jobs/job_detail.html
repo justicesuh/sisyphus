@@ -58,11 +58,16 @@
                 <h5 class="mb-0">Details</h5>
             </div>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
                     <span class="text-muted">Status</span>
-                    <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% else %}bg-dark{% endif %}">
-                        {{ job.get_status_display }}
-                    </span>
+                    <form method="post" action="{% url 'web:job_update_status' job.uuid %}">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                            {% for value, label in status_choices %}
+                            <option value="{{ value }}" {% if job.status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
                 </li>
                 <li class="list-group-item d-flex justify-content-between">
                     <span class="text-muted">Location</span>
