@@ -28,10 +28,6 @@ SORT_OPTIONS = {
 COMPANY_SORT_OPTIONS = {
     'name': 'name',
     '-name': '-name',
-    'created_at': 'created_at',
-    '-created_at': '-created_at',
-    'job_count': 'job_count',
-    '-job_count': '-job_count',
 }
 
 
@@ -140,9 +136,9 @@ def job_delete_note(request, uuid, note_id):
 
 @login_required
 def company_list(request):
-    from django.db.models import Count, Q
+    from django.db.models import Q
 
-    companies = Company.objects.annotate(job_count=Count('jobs'))
+    companies = Company.objects.all()
 
     search = request.GET.get('q', '').strip()
     if search:
