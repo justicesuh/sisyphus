@@ -8,6 +8,36 @@
     <span class="text-muted">{{ page.paginator.count }} jobs</span>
 </div>
 
+<form method="get" class="row g-3 mb-4">
+    <div class="col-auto">
+        <input type="text" name="q" class="form-control" placeholder="Search title or company" value="{{ current_search }}" />
+    </div>
+    <div class="col-auto">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All Statuses</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <select name="flexibility" class="form-select" onchange="this.form.submit()">
+            <option value="">All Flexibility</option>
+            {% for value, label in flexibility_choices %}
+            <option value="{{ value }}" {% if current_flexibility == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+    {% if current_search or current_status or current_flexibility %}
+    <div class="col-auto">
+        <a href="{% url 'web:job_list' %}" class="btn btn-outline-secondary">Clear</a>
+    </div>
+    {% endif %}
+</form>
+
 <div class="table-responsive">
     <table class="table table-hover">
         <thead class="table-light">
@@ -53,21 +83,21 @@
 <nav>
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page.has_previous %}disabled{% endif %}">
-            <a class="page-link" href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% endif %}">Previous</a>
+            <a class="page-link" href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% endif %}">Previous</a>
         </li>
         {% for num in page.paginator.page_range %}
             {% if page.number == num %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > page.number|add:'-3' and num < page.number|add:'3' %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}">{{ num }}</a></li>
             {% elif num == 1 or num == page.paginator.num_pages %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}">{{ num }}</a></li>
             {% elif num == 2 or num == page.paginator.num_pages|add:'-1' %}
             <li class="page-item disabled"><span class="page-link">...</span></li>
             {% endif %}
         {% endfor %}
         <li class="page-item {% if not page.has_next %}disabled{% endif %}">
-            <a class="page-link" href="{% if page.has_next %}?page={{ page.next_page_number }}{% endif %}">Next</a>
+            <a class="page-link" href="{% if page.has_next %}?page={{ page.next_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% endif %}">Next</a>
         </li>
     </ul>
 </nav>

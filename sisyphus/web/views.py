@@ -12,7 +12,30 @@ def index(request):
 
 @login_required
 def job_list(request):
+    from django.db.models import Q
+
     jobs = Job.objects.select_related('company', 'location').order_by('-date_posted')
+
+    search = request.GET.get('q', '').strip()
+    if search:
+        jobs = jobs.filter(Q(title__icontains=search) | Q(company__name__icontains=search))
+
+    status = request.GET.get('status')
+    if status:
+        jobs = jobs.filter(status=status)
+
+    flexibility = request.GET.get('flexibility')
+    if flexibility:
+        jobs = jobs.filter(flexibility=flexibility)
+
     paginator = Paginator(jobs, 25)
     page = paginator.get_page(request.GET.get('page'))
-    return render(request, 'jobs/job_list.html', {'page': page})
+
+    return render(request, 'jobs/job_list.html', {
+        'page': page,
+        'status_choices': Job.Status.choices,
+        'flexibility_choices': Job.Flexibility.choices,
+        'current_search': search,
+        'current_status': status,
+        'current_flexibility': flexibility,
+    })
