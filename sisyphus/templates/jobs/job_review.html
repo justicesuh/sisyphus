@@ -2,16 +2,20 @@
 
 {% block title %}Review Jobs - Sisyphus{% endblock %}
 
+
 {% block content %}
 {% if job %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Review Jobs</h1>
+    <div>
+        <h1 class="mb-0">Review Jobs</h1>
+        <small class="text-muted">Press <kbd>R</kbd> to refresh</small>
+    </div>
     <div class="btn-group">
         <a href="?status=new" class="btn {% if current_filter == 'new' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-            New <span class="badge bg-white text-primary ms-1">{{ new_count }}</span>
+            <kbd>1</kbd> New <span class="badge bg-white text-primary ms-1">{{ new_count }}</span>
         </a>
         <a href="?status=saved" class="btn {% if current_filter == 'saved' %}btn-success{% else %}btn-outline-success{% endif %}">
-            Saved <span class="badge bg-white text-success ms-1">{{ saved_count }}</span>
+            <kbd>2</kbd> Saved <span class="badge bg-white text-success ms-1">{{ saved_count }}</span>
         </a>
     </div>
 </div>
@@ -32,8 +36,8 @@
             </span>
             {% endif %}
         </div>
-        <a href="{{ job.url }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
-            <i class="bi bi-box-arrow-up-right me-1"></i>View Original
+        <a id="link-original" href="{{ job.url }}" target="_blank" rel="noopener" class="btn btn-outline-primary">
+            <i class="bi bi-box-arrow-up-right me-1"></i>View Original <kbd class="ms-1">O</kbd>
         </a>
     </div>
     <div class="card-body" style="max-height: 50vh; overflow-y: auto;">
@@ -105,6 +109,18 @@ document.addEventListener('keydown', function(e) {
             break;
         case 'a':
             document.getElementById('form-applied').submit();
+            break;
+        case 'o':
+            window.open(document.getElementById('link-original').href, '_blank');
+            break;
+        case 'r':
+            location.reload();
+            break;
+        case '1':
+            window.location.href = '?status=new';
+            break;
+        case '2':
+            window.location.href = '?status=saved';
             break;
     }
 });
