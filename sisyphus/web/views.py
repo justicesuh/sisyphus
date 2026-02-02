@@ -77,7 +77,7 @@ def job_detail(request, uuid):
     return render(request, 'jobs/job_detail.html', {
         'job': job,
         'notes': job.notes.all(),
-        'events': job.events.all(),
+        'events': job.events.order_by('-created_at'),
         'status_choices': Job.Status.choices,
     })
 
@@ -92,11 +92,12 @@ def job_update_status(request, uuid):
 
     if new_status in Job.Status.values:
         job.update_status(new_status)
+        job.refresh_from_db()
 
     if request.htmx:
         return render(request, 'jobs/job_status_with_history.html', {
             'job': job,
-            'events': job.events.all(),
+            'events': job.events.order_by('-created_at'),
             'status_choices': Job.Status.choices,
         })
 

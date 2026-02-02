@@ -3,7 +3,7 @@
         hx-target="#job-status"
         hx-swap="outerHTML"
         hx-include="this">
-    {% for value, label in status_choices %}
-    <option value="{{ value }}" {% if job.status == value %}selected{% endif %}>{{ label }}</option>
+    {% for choice_value, label in status_choices %}
+    <option value="{{ choice_value }}" {% if job.status == choice_value or job.status.value == choice_value %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
 </select>
