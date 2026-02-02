@@ -37,19 +37,8 @@
                             <th>Posted</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        {% for job in jobs %}
-                        <tr>
-                            <td><a href="{% url 'web:job_detail' job.uuid %}">{{ job.title }}</a></td>
-                            <td>{{ job.location.name|default:"-" }}</td>
-                            <td>
-                                <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% else %}bg-dark{% endif %}">
-                                    {{ job.get_status_display }}
-                                </span>
-                            </td>
-                            <td>{{ job.date_posted|date:"M j, Y"|default:"-" }}</td>
-                        </tr>
-                        {% endfor %}
+                    <tbody id="company-jobs-table">
+                        {% include "companies/company_jobs_rows.html" %}
                     </tbody>
                 </table>
             </div>

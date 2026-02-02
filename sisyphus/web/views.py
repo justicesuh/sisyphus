@@ -228,6 +228,7 @@ def company_toggle_ban(request, uuid):
         company.ban(reason)
 
     if request.htmx:
-        return render(request, 'companies/company_ban_status.html', {'company': company, 'is_htmx': True})
+        jobs = company.jobs.select_related('location').order_by('-date_posted')
+        return render(request, 'companies/company_ban_status.html', {'company': company, 'jobs': jobs, 'is_htmx': True})
 
     return redirect('web:company_detail', uuid=uuid)

@@ -22,13 +22,17 @@ class Company(UUIDModel):
         return self.name
 
     def ban(self, reason: str = '') -> None:
+        from sisyphus.jobs.models import Job
         self.is_banned = True
         self.banned_at = timezone.now()
         self.ban_reason = reason
         self.save(update_fields=['is_banned', 'banned_at', 'ban_reason'])
+        self.jobs.filter(status=Job.Status.NEW).update(status=Job.Status.BANNED)
 
     def unban(self) -> None:
+        from sisyphus.jobs.models import Job
         self.is_banned = False
         self.banned_at = None
         self.ban_reason = ''
         self.save(update_fields=['is_banned', 'banned_at', 'ban_reason'])
+        self.jobs.filter(status=Job.Status.BANNED).update(status=Job.Status.NEW)

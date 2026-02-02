@@ -6,6 +6,13 @@
     <span class="badge bg-success">Active</span>
     {% endif %}
 </span>
+<template id="jobs-update">
+    {% include "companies/company_jobs_rows.html" %}
+</template>
+<script>
+    document.getElementById('company-jobs-table').innerHTML = document.getElementById('jobs-update').innerHTML;
+    document.getElementById('jobs-update').remove();
+</script>
 {% endif %}
 <div id="ban-status">
     <div class="card">

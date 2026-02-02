@@ -84,7 +84,7 @@
                     {% else %}-{% endif %}
                 </td>
                 <td>
-                    <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% else %}bg-dark{% endif %}">
+                    <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% elif job.status == 'banned' %}bg-danger{% else %}bg-dark{% endif %}">
                         {{ job.get_status_display }}
                     </span>
                 </td>

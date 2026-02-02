@@ -17,6 +17,7 @@ class Job(UUIDModel):
     class Status(models.TextChoices):
         NEW = 'new', _('New')
         FILTERED = 'filtered', _('Filtered')
+        BANNED = 'banned', _('Banned')
         SAVED = 'saved', _('Saved')
         EXPIRED = 'expired', _('Expired')
         APPLIED = 'applied', _('Applied')
