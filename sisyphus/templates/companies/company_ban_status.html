@@ -1,3 +1,12 @@
+{% if is_htmx %}
+<span id="company-status-badge" hx-swap-oob="true">
+    {% if company.is_banned %}
+    <span class="badge bg-danger">Banned</span>
+    {% else %}
+    <span class="badge bg-success">Active</span>
+    {% endif %}
+</span>
+{% endif %}
 <div id="ban-status">
     <div class="card">
         <div class="card-header">

@@ -192,6 +192,6 @@ def company_toggle_ban(request, uuid):
         company.ban(reason)
 
     if request.htmx:
-        return render(request, 'companies/company_ban_status.html', {'company': company})
+        return render(request, 'companies/company_ban_status.html', {'company': company, 'is_htmx': True})
 
     return redirect('web:company_detail', uuid=uuid)
