@@ -42,12 +42,32 @@
     <table class="table table-hover">
         <thead class="table-light">
             <tr>
-                <th>Title</th>
-                <th>Company</th>
-                <th>Location</th>
+                <th>
+                    <a href="?sort={% if current_sort == 'title' %}-title{% else %}title{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}" class="text-decoration-none text-dark">
+                        Title {% if current_sort == 'title' %}<i class="bi bi-sort-alpha-down"></i>{% elif current_sort == '-title' %}<i class="bi bi-sort-alpha-up"></i>{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort={% if current_sort == 'company' %}-company{% else %}company{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}" class="text-decoration-none text-dark">
+                        Company {% if current_sort == 'company' %}<i class="bi bi-sort-alpha-down"></i>{% elif current_sort == '-company' %}<i class="bi bi-sort-alpha-up"></i>{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort={% if current_sort == 'location' %}-location{% else %}location{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}" class="text-decoration-none text-dark">
+                        Location {% if current_sort == 'location' %}<i class="bi bi-sort-alpha-down"></i>{% elif current_sort == '-location' %}<i class="bi bi-sort-alpha-up"></i>{% endif %}
+                    </a>
+                </th>
                 <th>Flexibility</th>
-                <th>Status</th>
-                <th>Posted</th>
+                <th>
+                    <a href="?sort={% if current_sort == 'status' %}-status{% else %}status{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}" class="text-decoration-none text-dark">
+                        Status {% if current_sort == 'status' %}<i class="bi bi-sort-alpha-down"></i>{% elif current_sort == '-status' %}<i class="bi bi-sort-alpha-up"></i>{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort={% if current_sort == 'date_posted' %}-date_posted{% else %}date_posted{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}" class="text-decoration-none text-dark">
+                        Posted {% if current_sort == 'date_posted' %}<i class="bi bi-sort-down"></i>{% elif current_sort == '-date_posted' %}<i class="bi bi-sort-up"></i>{% endif %}
+                    </a>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -83,21 +103,21 @@
 <nav>
     <ul class="pagination justify-content-center">
         <li class="page-item {% if not page.has_previous %}disabled{% endif %}">
-            <a class="page-link" href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% endif %}">Previous</a>
+            <a class="page-link" href="{% if page.has_previous %}?page={{ page.previous_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% endif %}">Previous</a>
         </li>
         {% for num in page.paginator.page_range %}
             {% if page.number == num %}
             <li class="page-item active"><span class="page-link">{{ num }}</span></li>
             {% elif num > page.number|add:'-3' and num < page.number|add:'3' %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a></li>
             {% elif num == 1 or num == page.paginator.num_pages %}
-            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}">{{ num }}</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ num }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}">{{ num }}</a></li>
             {% elif num == 2 or num == page.paginator.num_pages|add:'-1' %}
             <li class="page-item disabled"><span class="page-link">...</span></li>
             {% endif %}
         {% endfor %}
         <li class="page-item {% if not page.has_next %}disabled{% endif %}">
-            <a class="page-link" href="{% if page.has_next %}?page={{ page.next_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% endif %}">Next</a>
+            <a class="page-link" href="{% if page.has_next %}?page={{ page.next_page_number }}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_flexibility %}&flexibility={{ current_flexibility }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}{% endif %}">Next</a>
         </li>
     </ul>
 </nav>

@@ -10,11 +10,25 @@ def index(request):
     return render(request, 'index.html')
 
 
+SORT_OPTIONS = {
+    'title': 'title',
+    '-title': '-title',
+    'company': 'company__name',
+    '-company': '-company__name',
+    'location': 'location__name',
+    '-location': '-location__name',
+    'date_posted': 'date_posted',
+    '-date_posted': '-date_posted',
+    'status': 'status',
+    '-status': '-status',
+}
+
+
 @login_required
 def job_list(request):
     from django.db.models import Q
 
-    jobs = Job.objects.select_related('company', 'location').order_by('-date_posted')
+    jobs = Job.objects.select_related('company', 'location')
 
     search = request.GET.get('q', '').strip()
     if search:
@@ -28,6 +42,13 @@ def job_list(request):
     if flexibility:
         jobs = jobs.filter(flexibility=flexibility)
 
+    sort = request.GET.get('sort', '-date_posted')
+    if sort in SORT_OPTIONS:
+        jobs = jobs.order_by(SORT_OPTIONS[sort])
+    else:
+        sort = '-date_posted'
+        jobs = jobs.order_by('-date_posted')
+
     paginator = Paginator(jobs, 25)
     page = paginator.get_page(request.GET.get('page'))
 
@@ -38,4 +59,5 @@ def job_list(request):
         'current_search': search,
         'current_status': status,
         'current_flexibility': flexibility,
+        'current_sort': sort,
     })
