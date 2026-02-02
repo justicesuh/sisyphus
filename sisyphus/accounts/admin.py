@@ -2,7 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from sisyphus.accounts.models import User
+from sisyphus.accounts.models import User, UserProfile
+from sisyphus.core.admin import UUIDModelAdmin
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -23,3 +25,5 @@ class UserAdmin(BaseUserAdmin):
             'fields': ('email', 'password1', 'password2'),
         }),
     )
+
+admin.site.register(UserProfile, UUIDModelAdmin)

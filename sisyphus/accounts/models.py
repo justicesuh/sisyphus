@@ -1,3 +1,5 @@
+import zoneinfo
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models
@@ -5,6 +7,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from sisyphus.core.models import UUIDMixin
+
+
+def get_timezone_choices():
+    return [(tz, tz) for tz in sorted(zoneinfo.available_timezones())]
 
 
 class UserManager(BaseUserManager):
@@ -82,3 +88,11 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
     
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class UserProfile(UUIDMixin):
+    user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
+    timezone = models.CharField(max_length=50, choices=get_timezone_choices, default='UTC', verbose_name='Timezone')
+
+    def __str__(self):
+        return self.user.email
