@@ -27,7 +27,11 @@ class Company(UUIDModel):
         self.banned_at = timezone.now()
         self.ban_reason = reason
         self.save(update_fields=['is_banned', 'banned_at', 'ban_reason'])
-        self.jobs.filter(status=Job.Status.NEW).update(status=Job.Status.BANNED)
+        jobs_to_ban = self.jobs.filter(status__in=[Job.Status.NEW, Job.Status.SAVED])
+        for job in jobs_to_ban:
+            job.pre_ban_status = job.status
+            job.status = Job.Status.BANNED
+            job.save(update_fields=['status', 'pre_ban_status'])
 
     def unban(self) -> None:
         from sisyphus.jobs.models import Job
@@ -35,4 +39,7 @@ class Company(UUIDModel):
         self.banned_at = None
         self.ban_reason = ''
         self.save(update_fields=['is_banned', 'banned_at', 'ban_reason'])
-        self.jobs.filter(status=Job.Status.BANNED).update(status=Job.Status.NEW)
+        for job in self.jobs.filter(status=Job.Status.BANNED):
+            job.status = job.pre_ban_status or Job.Status.NEW
+            job.pre_ban_status = None
+            job.save(update_fields=['status', 'pre_ban_status'])

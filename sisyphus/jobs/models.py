@@ -44,6 +44,7 @@ class Job(UUIDModel):
     easy_apply = models.BooleanField(default=False)
 
     status = models.CharField(max_length=9, choices=Status.choices, default=Status.NEW)
+    pre_ban_status = models.CharField(max_length=9, choices=Status.choices, null=True, blank=True)
     date_status_changed = models.DateTimeField(null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
