@@ -3,3 +3,5 @@ db-data
 docs
 *.py[cod]
 .env
+import.py
+data.json
