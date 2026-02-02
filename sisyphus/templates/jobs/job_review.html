@@ -6,7 +6,14 @@
 {% if job %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>Review Jobs</h1>
-    <span class="badge bg-primary fs-6">{{ remaining }} remaining</span>
+    <div class="btn-group">
+        <a href="?status=new" class="btn {% if current_filter == 'new' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            New <span class="badge bg-white text-primary ms-1">{{ new_count }}</span>
+        </a>
+        <a href="?status=saved" class="btn {% if current_filter == 'saved' %}btn-success{% else %}btn-outline-success{% endif %}">
+            Saved <span class="badge bg-white text-success ms-1">{{ saved_count }}</span>
+        </a>
+    </div>
 </div>
 
 <div class="card mb-4">
@@ -39,28 +46,28 @@
 </div>
 
 <div class="d-flex justify-content-center gap-3">
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}" class="d-inline">
+    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="dismissed">
         <button type="submit" class="btn btn-outline-danger btn-lg px-4">
             <i class="bi bi-x-circle me-1"></i>Dismiss
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}" class="d-inline">
+    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="expired">
         <button type="submit" class="btn btn-secondary btn-lg px-4">
             <i class="bi bi-hourglass-bottom me-1"></i>Expired
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}" class="d-inline">
+    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="saved">
         <button type="submit" class="btn btn-success btn-lg px-4">
             <i class="bi bi-bookmark-fill me-1"></i>Save
         </button>
     </form>
-    <form method="post" action="{% url 'web:job_review_action' job.uuid %}" class="d-inline">
+    <form method="post" action="{% url 'web:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="applied">
         <button type="submit" class="btn btn-primary btn-lg px-4">

@@ -2,6 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from sisyphus.companies.models import Company
 from sisyphus.jobs.models import Job, JobNote
@@ -180,17 +181,20 @@ def company_detail(request, uuid):
 
 @login_required
 def job_review(request):
-    job = Job.objects.filter(status=Job.Status.NEW).select_related('company', 'location').order_by('-date_posted').first()
+    filter_status = request.GET.get('status', 'new')
+    if filter_status not in ['new', 'saved']:
+        filter_status = 'new'
 
-    if not job:
-        return render(request, 'jobs/job_review.html', {'job': None})
+    job = Job.objects.filter(status=filter_status).select_related('company', 'location').order_by('-date_posted').first()
 
-    remaining = Job.objects.filter(status=Job.Status.NEW).count()
+    new_count = Job.objects.filter(status=Job.Status.NEW).count()
+    saved_count = Job.objects.filter(status=Job.Status.SAVED).count()
 
     return render(request, 'jobs/job_review.html', {
         'job': job,
-        'remaining': remaining,
-        'status_choices': Job.Status.choices,
+        'new_count': new_count,
+        'saved_count': saved_count,
+        'current_filter': filter_status,
     })
 
 
@@ -205,7 +209,8 @@ def job_review_action(request, uuid):
     if new_status in Job.Status.values:
         job.update_status(new_status)
 
-    return redirect('web:job_review')
+    filter_status = request.GET.get('filter', 'new')
+    return redirect(f"{reverse('web:job_review')}?status={filter_status}")
 
 
 @login_required
