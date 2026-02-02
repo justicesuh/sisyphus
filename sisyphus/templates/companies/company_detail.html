@@ -90,17 +90,9 @@
             </ul>
         </div>
 
-        {% if company.is_banned and company.ban_reason %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="mb-0">Ban Reason</h5>
-            </div>
-            <div class="card-body">
-                <p class="mb-0">{{ company.ban_reason }}</p>
-                <small class="text-muted">Banned on {{ company.banned_at|date:"M j, Y" }}</small>
-            </div>
+        <div class="mt-4">
+            {% include "companies/company_ban_status.html" %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

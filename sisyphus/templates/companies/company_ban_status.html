@@ -1,0 +1,33 @@
+<div id="ban-status">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Ban Status</h5>
+        </div>
+        <div class="card-body">
+            {% if company.is_banned %}
+            <div class="alert alert-danger mb-3">
+                <strong>This company is banned.</strong>
+                {% if company.ban_reason %}
+                <p class="mb-0 mt-2">{{ company.ban_reason }}</p>
+                {% endif %}
+                <small class="text-muted d-block mt-2">Banned on {{ company.banned_at|date:"M j, Y" }}</small>
+            </div>
+            <form hx-post="{% url 'web:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle me-1"></i>Unban Company
+                </button>
+            </form>
+            {% else %}
+            <form hx-post="{% url 'web:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
+                <div class="mb-3">
+                    <label for="reason" class="form-label">Reason (optional)</label>
+                    <textarea name="reason" id="reason" class="form-control" rows="2" placeholder="Why is this company being banned?"></textarea>
+                </div>
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="bi bi-x-circle me-1"></i>Ban Company
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>

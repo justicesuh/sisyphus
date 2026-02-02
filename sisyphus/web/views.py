@@ -176,3 +176,22 @@ def company_detail(request, uuid):
         'company': company,
         'jobs': jobs,
     })
+
+
+@login_required
+def company_toggle_ban(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    company = get_object_or_404(Company, uuid=uuid)
+
+    if company.is_banned:
+        company.unban()
+    else:
+        reason = request.POST.get('reason', '').strip()
+        company.ban(reason)
+
+    if request.htmx:
+        return render(request, 'companies/company_ban_status.html', {'company': company})
+
+    return redirect('web:company_detail', uuid=uuid)
