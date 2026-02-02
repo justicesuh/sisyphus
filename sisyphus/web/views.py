@@ -179,6 +179,36 @@ def company_detail(request, uuid):
 
 
 @login_required
+def job_review(request):
+    job = Job.objects.filter(status=Job.Status.NEW).select_related('company', 'location').order_by('-date_posted').first()
+
+    if not job:
+        return render(request, 'jobs/job_review.html', {'job': None})
+
+    remaining = Job.objects.filter(status=Job.Status.NEW).count()
+
+    return render(request, 'jobs/job_review.html', {
+        'job': job,
+        'remaining': remaining,
+        'status_choices': Job.Status.choices,
+    })
+
+
+@login_required
+def job_review_action(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    job = get_object_or_404(Job, uuid=uuid)
+    new_status = request.POST.get('status')
+
+    if new_status in Job.Status.values:
+        job.update_status(new_status)
+
+    return redirect('web:job_review')
+
+
+@login_required
 def company_toggle_ban(request, uuid):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])

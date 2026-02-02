@@ -15,6 +15,8 @@ urlpatterns = [
     path('jobs/<uuid:uuid>/status/', views.job_update_status, name='job_update_status'),
     path('jobs/<uuid:uuid>/notes/', views.job_add_note, name='job_add_note'),
     path('jobs/<uuid:uuid>/notes/<int:note_id>/delete/', views.job_delete_note, name='job_delete_note'),
+    path('review/', views.job_review, name='job_review'),
+    path('review/<uuid:uuid>/action/', views.job_review_action, name='job_review_action'),
     path('login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
 ]
