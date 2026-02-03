@@ -5,3 +5,8 @@ docs
 .env
 import.py
 data.json
+
+# Static and media files
+staticfiles/
+media/*
+!media/.gitkeep
