@@ -3,7 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 from sisyphus.companies.models import Company
 from sisyphus.core.models import UUIDModel
-from sisyphus.jobs.tasks import calculate_job_score
 
 
 class Location(UUIDModel):
@@ -56,6 +55,7 @@ class Job(UUIDModel):
 
     score = models.IntegerField(null=True, blank=True)
     score_explanation = models.TextField(default='', blank=True)
+    score_task_id = models.CharField(max_length=255, blank=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -74,8 +74,21 @@ class Job(UUIDModel):
         return JobNote.objects.create(job=self, text=text)
 
     def calculate_score(self, resume):
+        from celery.result import AsyncResult
+        from sisyphus.jobs.tasks import calculate_job_score
+
+        if self.score_task_id:
+            result = AsyncResult(self.score_task_id)
+            if not result.ready():
+                return None
+
         if self.populated and self.score is None:
-            calculate_job_score.delay(self.id, resume.id)
+            result = calculate_job_score.delay(self.id, resume.id)
+            self.score_task_id = result.id
+            self.save(update_fields=['score_task_id'])
+            return result
+
+        return None
 
     def update_status(self, new_status):
         if self.cached_status == new_status:

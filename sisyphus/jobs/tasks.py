@@ -54,10 +54,16 @@ Resume:
 
         job.score = result.get('score')
         job.score_explanation = result.get('explanation', '')
-        job.save(update_fields=['score', 'score_explanation'])
+        job.score_task_id = ''
+        job.save(update_fields=['score', 'score_explanation', 'score_task_id'])
 
         return result
     except json.JSONDecodeError:
+        job.score_task_id = ''
+        job.save(update_fields=['score_task_id'])
         return {'error': 'Failed to parse response', 'raw_response': response}
     except Exception as exc:
+        if self.request.retries >= self.max_retries:
+            job.score_task_id = ''
+            job.save(update_fields=['score_task_id'])
         self.retry(exc=exc)
