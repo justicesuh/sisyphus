@@ -22,6 +22,12 @@ class Job(UUIDModel):
         EXPIRED = 'expired', _('Expired')
         APPLIED = 'applied', _('Applied')
         DISMISSED = 'dismissed', _('Dismissed')
+        INTERVIEWING = 'interviewing', _('Interviewing')
+        OFFER = 'offer', _('Offer')
+        REJECTED = 'rejected', _('Rejected')
+        WITHDRAWN = 'withdrawn', _('Withdrawn')
+        GHOSTED = 'ghosted', _('Ghosted')
+        ACCEPTED = 'accepted', _('Accepted')
 
     class Flexibility(models.TextChoices):
         HYBRID = 'hybrid', _('Hybrid')
@@ -43,8 +49,8 @@ class Job(UUIDModel):
     description = models.TextField(default='', blank=True)
     easy_apply = models.BooleanField(default=False)
 
-    status = models.CharField(max_length=9, choices=Status.choices, default=Status.NEW)
-    pre_ban_status = models.CharField(max_length=9, choices=Status.choices, null=True, blank=True)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.NEW)
+    pre_ban_status = models.CharField(max_length=12, choices=Status.choices, null=True, blank=True)
     date_status_changed = models.DateTimeField(null=True, blank=True)
 
     def __init__(self, *args, **kwargs):
@@ -75,8 +81,8 @@ class Job(UUIDModel):
 
 class JobEvent(UUIDModel):
     job = models.ForeignKey(Job, related_name='events', on_delete=models.CASCADE)
-    old_status = models.CharField(max_length=9, choices=Job.Status.choices)
-    new_status = models.CharField(max_length=9, choices=Job.Status.choices)
+    old_status = models.CharField(max_length=12, choices=Job.Status.choices)
+    new_status = models.CharField(max_length=12, choices=Job.Status.choices)
 
     def __str__(self):
         return f'{self.job.title} | {self.get_old_status_display()} -> {self.get_new_status_display()}'
