@@ -276,7 +276,9 @@ def resume_upload(request):
     name = request.POST.get('name', '').strip()
     file = request.FILES.get('file')
 
-    if name and file:
+    if file:
+        if not name:
+            name = file.name
         Resume.objects.create(user=profile, name=name, file=file)
 
     if request.htmx:
