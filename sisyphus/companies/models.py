@@ -21,6 +21,9 @@ class Company(UUIDModel):
     def __str__(self):
         return self.name
 
+    def add_note(self, text):
+        return CompanyNote.objects.create(company=self, text=text)
+
     def ban(self, reason: str = '') -> None:
         from sisyphus.jobs.models import Job
         self.is_banned = True
@@ -43,3 +46,11 @@ class Company(UUIDModel):
             job.status = job.pre_ban_status or Job.Status.NEW
             job.pre_ban_status = None
             job.save(update_fields=['status', 'pre_ban_status'])
+
+
+class CompanyNote(UUIDModel):
+    company = models.ForeignKey(Company, related_name='notes', on_delete=models.CASCADE)
+    text = models.TextField(default='', blank=True)
+
+    def __str__(self):
+        return f'{self.company.name} | {self.text}'
