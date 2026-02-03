@@ -4,8 +4,19 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-lg-8">
-        <div class="card mb-4">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Resume</h5>
+            </div>
+            <div class="card-body" id="resume-container">
+                {% include "profile_resumes.html" %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Profile Settings</h5>
             </div>
@@ -37,26 +48,6 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Resume</h5>
-            </div>
-            <div class="card-body" id="resume-container">
-                {% include "profile_resumes.html" %}
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Account Info</h5>
-            </div>
-            <div class="card-body">
-                <p class="mb-0"><strong>Current timezone:</strong><br>{{ profile.timezone }}</p>
             </div>
         </div>
     </div>
