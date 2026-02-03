@@ -8,12 +8,11 @@ class OpenAI:
     def __init__(self):
         self.client = OpenAIClient(api_key=settings.OPENAI_API_KEY)
 
-    def chat(self, messages, model='gpt-4o', temperature=0.2, max_tokens=None, **kwargs):
+    def chat(self, messages, model='gpt-4o-mini', temperature=0.3, **kwargs):
         response = self.client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=temperature,
-            max_tokens=max_tokens,
             **kwargs,
         )
         return response.choices[0].message.content

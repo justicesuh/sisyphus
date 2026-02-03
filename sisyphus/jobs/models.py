@@ -53,6 +53,9 @@ class Job(UUIDModel):
     pre_ban_status = models.CharField(max_length=12, choices=Status.choices, null=True, blank=True)
     date_status_changed = models.DateTimeField(null=True, blank=True)
 
+    score = models.IntegerField(null=True, blank=True)
+    score_explanation = models.TextField(default='', blank=True)
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cached_status = self.status
