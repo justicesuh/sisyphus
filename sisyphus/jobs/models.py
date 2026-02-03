@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from sisyphus.companies.models import Company
 from sisyphus.core.models import UUIDModel
+from sisyphus.jobs.tasks import calculate_job_score
 
 
 class Location(UUIDModel):
@@ -71,6 +72,10 @@ class Job(UUIDModel):
 
     def add_note(self, text):
         return JobNote.objects.create(job=self, text=text)
+
+    def calculate_score(self, resume):
+        if self.populated and self.score is None:
+            calculate_job_score.delay(self.id, resume.id)
 
     def update_status(self, new_status):
         if self.cached_status == new_status:

@@ -3,10 +3,6 @@ import re
 
 from celery import shared_task
 
-from sisyphus.core.services import get_openai
-from sisyphus.jobs.models import Job
-from sisyphus.resumes.models import Resume
-
 
 def parse_json_response(response):
     text = response.strip()
@@ -17,7 +13,11 @@ def parse_json_response(response):
 
 
 @shared_task(bind=True, max_retries=3, retry_backoff=True)
-def compute_job_match_score(self, job_id, resume_id):
+def calculate_job_score(self, job_id, resume_id):
+    from sisyphus.core.services import get_openai
+    from sisyphus.jobs.models import Job
+    from sisyphus.resumes.models import Resume
+
     job = Job.objects.get(id=job_id)
     resume = Resume.objects.get(id=resume_id)
 
@@ -27,7 +27,7 @@ def compute_job_match_score(self, job_id, resume_id):
     if not resume.text:
         return {'error': 'Resume has no extracted text'}
 
-    openai = get_openai()
+    openai_service = get_openai()
 
     system = """You are a job fit analyst. Compare the resume against the job description and evaluate how well the candidate matches the role.
 
@@ -49,7 +49,7 @@ Resume:
 {resume.text}"""
 
     try:
-        response = openai.complete(prompt, system)
+        response = openai_service.complete(prompt, system)
         result = parse_json_response(response)
 
         job.score = result.get('score')
