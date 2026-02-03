@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sisyphus.companies',
     'sisyphus.core',
     'sisyphus.jobs',
+    'sisyphus.resumes',
     'sisyphus.web',
 ]
 
