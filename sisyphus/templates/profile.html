@@ -41,11 +41,11 @@
         </div>
 
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Resumes</h5>
+            <div class="card-header">
+                <h5 class="mb-0">Resume</h5>
             </div>
             <div class="card-body">
-                <form id="resume-upload-form" method="post" action="{% url 'web:resume_upload' %}" enctype="multipart/form-data" class="mb-4" hx-post="{% url 'web:resume_upload' %}" hx-target="#resumes-list" hx-swap="innerHTML" hx-encoding="multipart/form-data" hx-on::after-request="if(event.detail.successful) this.reset()">
+                <form id="resume-upload-form" method="post" action="{% url 'web:resume_upload' %}" enctype="multipart/form-data" class="mb-4" hx-post="{% url 'web:resume_upload' %}" hx-target="#resume-container" hx-swap="innerHTML" hx-encoding="multipart/form-data" hx-on::after-request="if(event.detail.successful) this.reset()">
                     {% csrf_token %}
                     <div class="row g-2 align-items-end">
                         <div class="col-md-4">
@@ -58,13 +58,13 @@
                         </div>
                         <div class="col-md-3">
                             <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-upload me-1"></i> Upload
+                                <i class="bi bi-upload me-1"></i>{% if resume %}Replace{% else %}Upload{% endif %}
                             </button>
                         </div>
                     </div>
                 </form>
 
-                <div id="resumes-list">
+                <div id="resume-container">
                     {% include "profile_resumes.html" %}
                 </div>
             </div>

@@ -9,17 +9,14 @@ def resume_upload_path(instance, filename):
 
 
 class Resume(UUIDModel):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         UserProfile,
         on_delete=models.CASCADE,
-        related_name='resumes',
+        related_name='resume',
     )
     name = models.CharField(max_length=255, help_text='A label for this resume (e.g., "Software Engineer Resume")')
     file = models.FileField(upload_to=resume_upload_path)
     text = models.TextField(blank=True, help_text='Extracted text content from the resume')
-
-    class Meta:
-        ordering = ['-created_at']
 
     def __str__(self):
         return self.name

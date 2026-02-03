@@ -8,4 +8,4 @@ from sisyphus.resumes.models import Resume
 class ResumeAdmin(UUIDModelAdmin):
     list_display = ('name', 'user', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('name', 'user__email')
+    search_fields = ('name', 'user__user__email')

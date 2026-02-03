@@ -289,12 +289,12 @@ def profile(request):
 
         return redirect('web:profile')
 
-    resumes = profile.resumes.all()
+    resume = getattr(profile, 'resume', None)
     timezone_choices = get_timezone_choices()
 
     return render(request, 'profile.html', {
         'profile': profile,
-        'resumes': resumes,
+        'resume': resume,
         'timezone_choices': timezone_choices,
     })
 
@@ -312,56 +312,34 @@ def resume_upload(request):
     if file:
         if not name:
             name = file.name
+
+        # Delete existing resume if one exists
+        if hasattr(profile, 'resume'):
+            profile.resume.file.delete()
+            profile.resume.delete()
+
         resume = Resume.objects.create(user=profile, name=name, file=file)
         resume.extract_text()
 
-        # If this is the only resume, make it the default
-        if profile.resumes.count() == 1:
-            profile.default_resume = resume
-            profile.save()
-
     if request.htmx:
-        resumes = profile.resumes.all()
-        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
+        resume = getattr(profile, 'resume', None)
+        return render(request, 'profile_resumes.html', {'resume': resume})
 
     return redirect('web:profile')
 
 
 @login_required
-def resume_delete(request, uuid):
+def resume_delete(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    resume = get_object_or_404(Resume, uuid=uuid, user=profile)
 
-    if profile.default_resume == resume:
-        profile.default_resume = None
-        profile.save()
-
-    resume.file.delete()
-    resume.delete()
+    if hasattr(profile, 'resume'):
+        profile.resume.file.delete()
+        profile.resume.delete()
 
     if request.htmx:
-        resumes = profile.resumes.all()
-        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
-
-    return redirect('web:profile')
-
-
-@login_required
-def resume_set_default(request, uuid):
-    if request.method != 'POST':
-        return HttpResponseNotAllowed(['POST'])
-
-    profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    resume = get_object_or_404(Resume, uuid=uuid, user=profile)
-
-    profile.default_resume = resume
-    profile.save()
-
-    if request.htmx:
-        resumes = profile.resumes.all()
-        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
+        return render(request, 'profile_resumes.html', {'resume': None})
 
     return redirect('web:profile')
