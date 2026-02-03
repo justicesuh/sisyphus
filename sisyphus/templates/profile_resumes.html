@@ -1,3 +1,22 @@
+<form id="resume-upload-form" method="post" action="{% url 'web:resume_upload' %}" enctype="multipart/form-data" class="mb-4" hx-post="{% url 'web:resume_upload' %}" hx-target="#resume-container" hx-swap="innerHTML" hx-encoding="multipart/form-data" hx-on::after-request="if(event.detail.successful) this.reset()">
+    {% csrf_token %}
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label for="resume_name" class="form-label">Resume Name</label>
+            <input type="text" name="name" id="resume_name" class="form-control" placeholder="e.g., Software Engineer Resume">
+        </div>
+        <div class="col-md-5">
+            <label for="resume_file" class="form-label">File</label>
+            <input type="file" name="file" id="resume_file" class="form-control" accept=".pdf,.doc,.docx" required>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-success w-100">
+                <i class="bi bi-upload me-1"></i>{% if resume %}Replace{% else %}Upload{% endif %}
+            </button>
+        </div>
+    </div>
+</form>
+
 {% if resume %}
 <div class="d-flex align-items-center justify-content-between p-3 border rounded">
     <div>
