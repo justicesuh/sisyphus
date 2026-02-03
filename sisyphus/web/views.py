@@ -279,7 +279,8 @@ def resume_upload(request):
     if file:
         if not name:
             name = file.name
-        Resume.objects.create(user=profile, name=name, file=file)
+        resume = Resume.objects.create(user=profile, name=name, file=file)
+        resume.extract_text()
 
     if request.htmx:
         resumes = profile.resumes.all()
