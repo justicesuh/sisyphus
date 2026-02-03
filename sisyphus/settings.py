@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'sisyphus.jobs',
     'sisyphus.resumes',
     'sisyphus.web',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +131,12 @@ MEDIA_ROOT = BASE_DIR.parent / 'media'
 LOGIN_URL = 'web:login'
 LOGIN_REDIRECT_URL = 'web:index'
 LOGOUT_REDIRECT_URL = 'web:index'
+
+# Celery configuration
+CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
