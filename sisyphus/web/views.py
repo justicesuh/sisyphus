@@ -282,6 +282,11 @@ def resume_upload(request):
         resume = Resume.objects.create(user=profile, name=name, file=file)
         resume.extract_text()
 
+        # If this is the only resume, make it the default
+        if profile.resumes.count() == 1:
+            profile.default_resume = resume
+            profile.save()
+
     if request.htmx:
         resumes = profile.resumes.all()
         return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
