@@ -283,7 +283,7 @@ def resume_upload(request):
 
     if request.htmx:
         resumes = profile.resumes.all()
-        return render(request, 'profile_resumes.html', {'resumes': resumes})
+        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
 
     return redirect('web:profile')
 
@@ -295,11 +295,34 @@ def resume_delete(request, uuid):
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     resume = get_object_or_404(Resume, uuid=uuid, user=profile)
+
+    if profile.default_resume == resume:
+        profile.default_resume = None
+        profile.save()
+
     resume.file.delete()
     resume.delete()
 
     if request.htmx:
         resumes = profile.resumes.all()
-        return render(request, 'profile_resumes.html', {'resumes': resumes})
+        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
+
+    return redirect('web:profile')
+
+
+@login_required
+def resume_set_default(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    resume = get_object_or_404(Resume, uuid=uuid, user=profile)
+
+    profile.default_resume = resume
+    profile.save()
+
+    if request.htmx:
+        resumes = profile.resumes.all()
+        return render(request, 'profile_resumes.html', {'resumes': resumes, 'profile': profile})
 
     return redirect('web:profile')

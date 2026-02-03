@@ -22,4 +22,5 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('profile/resumes/upload/', views.resume_upload, name='resume_upload'),
     path('profile/resumes/<uuid:uuid>/delete/', views.resume_delete, name='resume_delete'),
+    path('profile/resumes/<uuid:uuid>/set-default/', views.resume_set_default, name='resume_set_default'),
 ]

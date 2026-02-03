@@ -3,9 +3,9 @@
     <table class="table table-hover mb-0">
         <thead>
             <tr>
-                <th>Name</th>
-                <th>Uploaded</th>
-                <th class="text-end">Actions</th>
+                <th style="width: 50%;">Name</th>
+                <th style="width: 25%;">Uploaded</th>
+                <th style="width: 25%;" class="text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -15,9 +15,21 @@
                     <a href="{{ resume.file.url }}" target="_blank" class="text-decoration-none">
                         <i class="bi bi-file-earmark-text me-1"></i>{{ resume.name }}
                     </a>
+                    {% if profile.default_resume == resume %}
+                    <span class="badge bg-primary ms-2">Default</span>
+                    {% endif %}
                 </td>
                 <td class="text-muted">{{ resume.created_at|date:"M j, Y" }}</td>
-                <td class="text-end">
+                <td class="text-end text-nowrap">
+                    {% if profile.default_resume == resume %}
+                    <button type="button" class="btn btn-sm btn-primary me-1" disabled title="Default resume">
+                        <i class="bi bi-star-fill"></i>
+                    </button>
+                    {% else %}
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-1" hx-post="{% url 'web:resume_set_default' resume.uuid %}" hx-target="#resumes-list" hx-swap="innerHTML" title="Set as default">
+                        <i class="bi bi-star"></i>
+                    </button>
+                    {% endif %}
                     <a href="{{ resume.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="Download">
                         <i class="bi bi-download"></i>
                     </a>

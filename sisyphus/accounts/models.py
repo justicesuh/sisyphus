@@ -93,6 +93,13 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
 class UserProfile(UUIDMixin):
     user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
     timezone = models.CharField(max_length=50, choices=get_timezone_choices, default='UTC', verbose_name='Timezone')
+    default_resume = models.ForeignKey(
+        'resumes.Resume',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+    )
 
     def __str__(self):
         return self.user.email
