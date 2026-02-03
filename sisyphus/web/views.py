@@ -4,8 +4,10 @@ from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from sisyphus.accounts.models import UserProfile, get_timezone_choices
 from sisyphus.companies.models import Company
 from sisyphus.jobs.models import Job, JobNote
+from sisyphus.resumes.models import Resume
 
 
 @login_required
@@ -234,3 +236,68 @@ def company_toggle_ban(request, uuid):
         return render(request, 'companies/company_ban_status.html', {'company': company, 'jobs': jobs, 'is_htmx': True})
 
     return redirect('web:company_detail', uuid=uuid)
+
+
+@login_required
+def profile(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', '').strip()
+        user.last_name = request.POST.get('last_name', '').strip()
+        user.save()
+
+        timezone = request.POST.get('timezone', 'UTC')
+        valid_timezones = [tz[0] for tz in get_timezone_choices()]
+        if timezone in valid_timezones:
+            profile.timezone = timezone
+            profile.save()
+
+        return redirect('web:profile')
+
+    resumes = profile.resumes.all()
+    timezone_choices = get_timezone_choices()
+
+    return render(request, 'profile.html', {
+        'profile': profile,
+        'resumes': resumes,
+        'timezone_choices': timezone_choices,
+    })
+
+
+@login_required
+def resume_upload(request):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    name = request.POST.get('name', '').strip()
+    file = request.FILES.get('file')
+
+    if name and file:
+        Resume.objects.create(user=profile, name=name, file=file)
+
+    if request.htmx:
+        resumes = profile.resumes.all()
+        return render(request, 'profile_resumes.html', {'resumes': resumes})
+
+    return redirect('web:profile')
+
+
+@login_required
+def resume_delete(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    resume = get_object_or_404(Resume, uuid=uuid, user=profile)
+    resume.file.delete()
+    resume.delete()
+
+    if request.htmx:
+        resumes = profile.resumes.all()
+        return render(request, 'profile_resumes.html', {'resumes': resumes})
+
+    return redirect('web:profile')

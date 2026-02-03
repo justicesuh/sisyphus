@@ -40,6 +40,7 @@
                             {{ user.email }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: auto;">
+                            <li><a class="dropdown-item py-2" href="{% url 'web:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
                             <li><a class="dropdown-item py-2" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Admin</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>

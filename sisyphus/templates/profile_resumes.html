@@ -1,0 +1,35 @@
+{% if resumes %}
+<div class="table-responsive">
+    <table class="table table-hover mb-0">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Uploaded</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for resume in resumes %}
+            <tr>
+                <td>
+                    <a href="{{ resume.file.url }}" target="_blank" class="text-decoration-none">
+                        <i class="bi bi-file-earmark-text me-1"></i>{{ resume.name }}
+                    </a>
+                </td>
+                <td class="text-muted">{{ resume.created_at|date:"M j, Y" }}</td>
+                <td class="text-end">
+                    <a href="{{ resume.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary me-1" title="Download">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" hx-post="{% url 'web:resume_delete' resume.uuid %}" hx-target="#resumes-list" hx-swap="innerHTML" hx-confirm="Are you sure you want to delete this resume?" title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted mb-0">No resumes uploaded yet. Upload your first resume above.</p>
+{% endif %}
