@@ -11,4 +11,5 @@ dependencies = [
     "pymupdf>=1.25.0",
     "celery[redis]>=5.4.0",
     "django-celery-beat @ git+https://github.com/celery/django-celery-beat@bd429063cbb227c00905e7693c38895e44ff8e47",
+    "openai>=1.60.0",
 ]

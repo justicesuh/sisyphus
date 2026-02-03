@@ -56,6 +56,8 @@ MIDDLEWARE = [
     'django_htmx.middleware.HtmxMiddleware',
 ]
 
+OPENAI_API_KEY = env('OPENAI_API_KEY')
+
 ROOT_URLCONF = 'sisyphus.urls'
 
 TEMPLATES = [
