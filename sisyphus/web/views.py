@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
 from sisyphus.accounts.models import UserProfile, get_timezone_choices
-from sisyphus.companies.models import Company
+from sisyphus.companies.models import Company, CompanyNote
 from sisyphus.jobs.models import Job, JobNote
 from sisyphus.resumes.models import Resume
 
@@ -181,7 +181,40 @@ def company_detail(request, uuid):
     return render(request, 'companies/company_detail.html', {
         'company': company,
         'jobs': jobs,
+        'notes': company.notes.all(),
     })
+
+
+@login_required
+def company_add_note(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    company = get_object_or_404(Company, uuid=uuid)
+    text = request.POST.get('text', '').strip()
+
+    if text:
+        company.add_note(text)
+
+    if request.htmx:
+        return render(request, 'companies/company_notes_inner.html', {'company': company, 'notes': company.notes.all()})
+
+    return redirect('web:company_detail', uuid=uuid)
+
+
+@login_required
+def company_delete_note(request, uuid, note_id):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    note = get_object_or_404(CompanyNote, id=note_id, company__uuid=uuid)
+    company = note.company
+    note.delete()
+
+    if request.htmx:
+        return render(request, 'companies/company_notes_inner.html', {'company': company, 'notes': company.notes.all()})
+
+    return redirect('web:company_detail', uuid=uuid)
 
 
 @login_required
