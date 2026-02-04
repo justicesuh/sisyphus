@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}{% if rule %}Edit Rule{% else %}Create Rule{% endif %} - Sisyphus{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">{% if rule %}Edit Rule{% else %}Create Rule{% endif %}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" id="rule-form">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Rule Name</label>
+                        <input type="text" name="name" id="name" class="form-control" required value="{{ rule.name|default:'' }}">
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="match_mode" class="form-label">Match Mode</label>
+                            <select name="match_mode" id="match_mode" class="form-select">
+                                {% for value, label in match_mode_choices %}
+                                <option value="{{ value }}" {% if rule.match_mode == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="target_status" class="form-label">Target Status</label>
+                            <select name="target_status" id="target_status" class="form-select">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if rule.target_status == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="priority" class="form-label">Priority</label>
+                            <input type="number" name="priority" id="priority" class="form-control" min="0" value="{{ rule.priority|default:0 }}">
+                            <div class="form-text">Higher = evaluated first</div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mb-3">Conditions</h6>
+                    <div id="conditions-container">
+                        {% if conditions %}
+                            {% for condition in conditions %}
+                            <div class="condition-row card mb-2" data-index="{{ forloop.counter0 }}">
+                                <div class="card-body py-2">
+                                    <div class="row g-2 align-items-center">
+                                        <div class="col-md-2">
+                                            <select name="condition_{{ forloop.counter0 }}_field" class="form-select form-select-sm">
+                                                {% for value, label in field_choices %}
+                                                <option value="{{ value }}" {% if condition.field == value %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select name="condition_{{ forloop.counter0 }}_match_type" class="form-select form-select-sm">
+                                                {% for value, label in match_type_choices %}
+                                                <option value="{{ value }}" {% if condition.match_type == value %}selected{% endif %}>{{ label }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" name="condition_{{ forloop.counter0 }}_value" class="form-control form-control-sm" placeholder="Value" value="{{ condition.value }}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-check">
+                                                <input type="checkbox" name="condition_{{ forloop.counter0 }}_case_sensitive" class="form-check-input" id="case_{{ forloop.counter0 }}" {% if condition.case_sensitive %}checked{% endif %}>
+                                                <label class="form-check-label small" for="case_{{ forloop.counter0 }}">Case sensitive</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-condition" title="Remove">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <input type="hidden" name="condition_count" id="condition_count" value="{{ conditions|length|default:0 }}">
+
+                    <button type="button" id="add-condition" class="btn btn-outline-secondary btn-sm mb-3">
+                        <i class="bi bi-plus"></i> Add Condition
+                    </button>
+
+                    {% if not rule %}
+                    <hr>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="apply_to_existing" id="apply_to_existing" class="form-check-input">
+                        <label class="form-check-label" for="apply_to_existing">
+                            Apply to existing jobs with "New" status
+                        </label>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">{% if rule %}Save Changes{% else %}Create Rule{% endif %}</button>
+                        <a href="{% url 'rules:rule_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="condition-template">
+    <div class="condition-row card mb-2" data-index="__INDEX__">
+        <div class="card-body py-2">
+            <div class="row g-2 align-items-center">
+                <div class="col-md-2">
+                    <select name="condition___INDEX___field" class="form-select form-select-sm">
+                        {% for value, label in field_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="condition___INDEX___match_type" class="form-select form-select-sm">
+                        {% for value, label in match_type_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="condition___INDEX___value" class="form-control form-control-sm" placeholder="Value">
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check">
+                        <input type="checkbox" name="condition___INDEX___case_sensitive" class="form-check-input" id="case___INDEX__">
+                        <label class="form-check-label small" for="case___INDEX__">Case sensitive</label>
+                    </div>
+                </div>
+                <div class="col-md-1">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-condition" title="Remove">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('conditions-container');
+    const countInput = document.getElementById('condition_count');
+    const template = document.getElementById('condition-template');
+    const addBtn = document.getElementById('add-condition');
+
+    function updateIndices() {
+        const rows = container.querySelectorAll('.condition-row');
+        rows.forEach((row, i) => {
+            row.dataset.index = i;
+            row.querySelectorAll('[name]').forEach(input => {
+                input.name = input.name.replace(/condition_\d+_/, `condition_${i}_`);
+            });
+            row.querySelectorAll('[id^="case_"]').forEach(input => {
+                input.id = `case_${i}`;
+            });
+            row.querySelectorAll('[for^="case_"]').forEach(label => {
+                label.setAttribute('for', `case_${i}`);
+            });
+        });
+        countInput.value = rows.length;
+    }
+
+    addBtn.addEventListener('click', function() {
+        const index = container.querySelectorAll('.condition-row').length;
+        const html = template.innerHTML.replace(/__INDEX__/g, index);
+        container.insertAdjacentHTML('beforeend', html);
+        updateIndices();
+    });
+
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-condition')) {
+            e.target.closest('.condition-row').remove();
+            updateIndices();
+        }
+    });
+
+    // Add initial condition if none exist
+    if (container.querySelectorAll('.condition-row').length === 0) {
+        addBtn.click();
+    }
+});
+</script>
+{% endblock %}

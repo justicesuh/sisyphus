@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sisyphus.core',
     'sisyphus.jobs',
     'sisyphus.resumes',
+    'sisyphus.rules',
     'sisyphus.web',
     'django_celery_beat',
 ]
