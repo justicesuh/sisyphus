@@ -92,16 +92,6 @@
                         <i class="bi bi-plus"></i> Add Condition
                     </button>
 
-                    {% if not rule %}
-                    <hr>
-                    <div class="form-check mb-3">
-                        <input type="checkbox" name="apply_to_existing" id="apply_to_existing" class="form-check-input">
-                        <label class="form-check-label" for="apply_to_existing">
-                            Apply to existing jobs with "New" status
-                        </label>
-                    </div>
-                    {% endif %}
-
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">{% if rule %}Save Changes{% else %}Create Rule{% endif %}</button>
                         <a href="{% url 'rules:rule_list' %}" class="btn btn-outline-secondary">Cancel</a>

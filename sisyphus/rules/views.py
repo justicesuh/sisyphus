@@ -27,8 +27,6 @@ def rule_create(request):
         match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
         target_status = request.POST.get('target_status', Job.Status.FILTERED)
         priority = int(request.POST.get('priority', 0))
-        apply_to_existing = request.POST.get('apply_to_existing') == 'on'
-
         rule = Rule.objects.create(
             user=profile,
             name=name,
@@ -54,8 +52,8 @@ def rule_create(request):
                     case_sensitive=case_sensitive,
                 )
 
-        if apply_to_existing:
-            apply_rule_to_existing_jobs.delay(rule.id)
+        # Always apply to existing jobs with NEW status
+        apply_rule_to_existing_jobs.delay(rule.id)
 
         return redirect('rules:rule_list')
 
@@ -98,6 +96,10 @@ def rule_edit(request, uuid):
                     case_sensitive=case_sensitive,
                 )
 
+        # Always apply to existing jobs with NEW status
+        if rule.is_active:
+            apply_rule_to_existing_jobs.delay(rule.id)
+
         return redirect('rules:rule_list')
 
     conditions = list(rule.conditions.all())
@@ -137,6 +139,10 @@ def rule_toggle(request, uuid):
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
     rule.is_active = not rule.is_active
     rule.save(update_fields=['is_active'])
+
+    # Apply to existing jobs when rule is activated
+    if rule.is_active:
+        apply_rule_to_existing_jobs.delay(rule.id)
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
