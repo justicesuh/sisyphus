@@ -18,8 +18,17 @@ def calculate_job_score(self, job_id, resume_id):
     from sisyphus.jobs.models import Job
     from sisyphus.resumes.models import Resume
 
-    job = Job.objects.get(id=job_id)
-    resume = Resume.objects.get(id=resume_id)
+    try:
+        job = Job.objects.get(id=job_id)
+    except Job.DoesNotExist:
+        return {'error': 'Job not found'}
+
+    try:
+        resume = Resume.objects.get(id=resume_id)
+    except Resume.DoesNotExist:
+        job.score_task_id = ''
+        job.save(update_fields=['score_task_id'])
+        return {'error': 'Resume not found'}
 
     if not job.description:
         return {'error': 'Job has no description'}

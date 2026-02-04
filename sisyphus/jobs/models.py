@@ -74,21 +74,33 @@ class Job(UUIDModel):
         return JobNote.objects.create(job=self, text=text)
 
     def calculate_score(self, resume):
+        if self.score is not None:
+            return None
+
+        if not self.populated:
+            return None
+
         from celery.result import AsyncResult
+        from django.db import transaction
         from sisyphus.jobs.tasks import calculate_job_score
 
-        if self.score_task_id:
-            result = AsyncResult(self.score_task_id)
-            if not result.ready():
+        with transaction.atomic():
+            job = Job.objects.select_for_update().get(id=self.id)
+
+            if job.score is not None:
                 return None
 
-        if self.populated and self.score is None:
-            result = calculate_job_score.delay(self.id, resume.id)
-            self.score_task_id = result.id
-            self.save(update_fields=['score_task_id'])
-            return result
+            if job.score_task_id:
+                result = AsyncResult(job.score_task_id)
+                if not result.ready():
+                    return None
 
-        return None
+            result = calculate_job_score.delay(self.id, resume.id)
+            job.score_task_id = result.id
+            job.save(update_fields=['score_task_id'])
+
+        self.score_task_id = result.id
+        return result
 
     def update_status(self, new_status):
         if self.cached_status == new_status:
