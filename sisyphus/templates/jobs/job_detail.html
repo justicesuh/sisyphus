@@ -55,6 +55,21 @@
                     <span class="text-muted">Status</span>
                     {% include "jobs/job_status.html" %}
                 </li>
+                <li class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Score</span>
+                        {% if job.score is not None %}
+                        <span class="badge {% if job.score >= 70 %}bg-success{% elif job.score >= 50 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                            {{ job.score }}
+                        </span>
+                        {% else %}
+                        <span>-</span>
+                        {% endif %}
+                    </div>
+                    {% if job.score_explanation %}
+                    <small class="text-muted d-block mt-1">{{ job.score_explanation }}</small>
+                    {% endif %}
+                </li>
                 <li class="list-group-item d-flex justify-content-between">
                     <span class="text-muted">Location</span>
                     <span>{{ job.location.name|default:"-" }}</span>
