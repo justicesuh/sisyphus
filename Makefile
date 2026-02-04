@@ -33,3 +33,7 @@ migrate:
 .PHONY: shell
 shell:
 	docker exec -it sisyphus_django /bin/bash
+
+.PHONY: logs
+logs:
+	docker compose logs -f
