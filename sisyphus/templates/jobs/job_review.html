@@ -4,7 +4,6 @@
 
 
 {% block content %}
-{% if job %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="mb-0">Review Jobs</h1>
@@ -20,6 +19,7 @@
     </div>
 </div>
 
+{% if job %}
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div>
@@ -87,22 +87,24 @@
 
 
 {% else %}
-<div class="text-center py-5">
-    <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
-    <h2 class="mt-4">All caught up!</h2>
-    <p class="text-muted">No new jobs to review.</p>
-    <a href="{% url 'web:job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+        <h2 class="mt-4">All caught up!</h2>
+        <p class="text-muted">No jobs to review.</p>
+        <a href="{% url 'web:job_list' %}" class="btn btn-primary mt-3">View All Jobs</a>
+    </div>
 </div>
 {% endif %}
 {% endblock %}
 
 {% block extra_js %}
-{% if job %}
 <script>
 document.addEventListener('keydown', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
     switch(e.key.toLowerCase()) {
+        {% if job %}
         case 'd':
             document.getElementById('form-dismiss').submit();
             break;
@@ -118,6 +120,7 @@ document.addEventListener('keydown', function(e) {
         case 'o':
             window.open(document.getElementById('link-original').href, '_blank');
             break;
+        {% endif %}
         case 'r':
             location.reload();
             break;
@@ -130,5 +133,4 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
-{% endif %}
 {% endblock %}
