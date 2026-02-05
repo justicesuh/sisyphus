@@ -4,7 +4,10 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Rules</h1>
+    <div>
+        <h1>Rules</h1>
+        <span class="text-muted">{{ page.paginator.count }} rules</span>
+    </div>
     <div class="d-flex gap-2">
         <form method="post" action="{% url 'rules:rule_apply_all' %}" hx-post="{% url 'rules:rule_apply_all' %}" hx-target="#rules-list" hx-swap="innerHTML">
             {% csrf_token %}

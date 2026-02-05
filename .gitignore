@@ -5,6 +5,7 @@ docs
 .env
 import.py
 data.json
+addrules.py
 
 # Static and media files
 staticfiles/

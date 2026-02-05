@@ -1,4 +1,5 @@
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -12,8 +13,11 @@ def rule_list(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
 
+    paginator = Paginator(rules, 25)
+    page = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'rules/rule_list.html', {
-        'rules': rules,
+        'page': page,
     })
 
 
@@ -152,7 +156,9 @@ def rule_delete(request, uuid):
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
-        return render(request, 'rules/rule_list_inner.html', {'rules': rules})
+        paginator = Paginator(rules, 25)
+        page = paginator.get_page(1)
+        return render(request, 'rules/rule_list_inner.html', {'page': page})
 
     return redirect('rules:rule_list')
 
@@ -169,7 +175,9 @@ def rule_toggle(request, uuid):
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
-        return render(request, 'rules/rule_list_inner.html', {'rules': rules})
+        paginator = Paginator(rules, 25)
+        page = paginator.get_page(1)
+        return render(request, 'rules/rule_list_inner.html', {'page': page})
 
     return redirect('rules:rule_list')
 
@@ -187,8 +195,10 @@ def rule_apply(request, uuid):
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
+        paginator = Paginator(rules, 25)
+        page = paginator.get_page(1)
         return render(request, 'rules/rule_list_inner.html', {
-            'rules': rules,
+            'page': page,
             'message': f'Rule "{rule.name}" is being applied to existing jobs.',
         })
 
@@ -207,8 +217,10 @@ def rule_apply_all(request):
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
+        paginator = Paginator(rules, 25)
+        page = paginator.get_page(1)
         return render(request, 'rules/rule_list_inner.html', {
-            'rules': rules,
+            'page': page,
             'message': 'All rules are being applied to existing jobs.',
         })
 
