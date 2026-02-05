@@ -1,7 +1,54 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - Sisyphus{% endblock %}
+
 {% block content %}
-<h1>Welcome to Sisyphus</h1>
-<p>Job application tracker</p>
-<p>It is {% now "jS F Y H:i" %}</p>
+<h1 class="mb-4">Dashboard</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold">{{ to_review }}</div>
+                <div class="text-muted">To Review</div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'jobs:job_review' %}" class="btn btn-sm btn-outline-primary w-100">Review Jobs</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold text-warning">{{ saved }}</div>
+                <div class="text-muted">Saved</div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'jobs:job_list' %}?status=saved" class="btn btn-sm btn-outline-warning w-100">View Saved</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold text-success">{{ applied }}</div>
+                <div class="text-muted">Applied</div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'jobs:job_list' %}?status=applied" class="btn btn-sm btn-outline-success w-100">View Applied</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="card text-center h-100">
+            <div class="card-body">
+                <div class="fs-2 fw-bold text-info">{{ interviewing }}</div>
+                <div class="text-muted">Interviewing</div>
+            </div>
+            <div class="card-footer bg-transparent border-0 pt-0">
+                <a href="{% url 'jobs:job_list' %}?status=interviewing" class="btn btn-sm btn-outline-info w-100">View Active</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

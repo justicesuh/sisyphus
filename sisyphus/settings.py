@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'sisyphus.companies',
     'sisyphus.core',
     'sisyphus.jobs',
+    'sisyphus.metrics',
     'sisyphus.resumes',
     'sisyphus.rules',
 ]
@@ -131,8 +132,8 @@ MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'jobs:index'
-LOGOUT_REDIRECT_URL = 'jobs:index'
+LOGIN_REDIRECT_URL = 'metrics:index'
+LOGOUT_REDIRECT_URL = 'metrics:index'
 
 # Celery configuration
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')
