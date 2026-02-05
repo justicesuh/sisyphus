@@ -4,7 +4,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from sisyphus.accounts.models import UserProfile
 from sisyphus.rules.models import Rule, RuleCondition
-from sisyphus.rules.tasks import apply_rule_to_existing_jobs
 
 
 @login_required
@@ -49,9 +48,6 @@ def rule_create(request):
                     case_sensitive=case_sensitive,
                 )
 
-        # Always apply to existing jobs with NEW status
-        apply_rule_to_existing_jobs.delay(rule.id)
-
         return redirect('rules:rule_list')
 
     return render(request, 'rules/rule_form.html', {
@@ -90,10 +86,6 @@ def rule_edit(request, uuid):
                     value=value,
                     case_sensitive=case_sensitive,
                 )
-
-        # Always apply to existing jobs with NEW status
-        if rule.is_active:
-            apply_rule_to_existing_jobs.delay(rule.id)
 
         return redirect('rules:rule_list')
 
@@ -134,9 +126,23 @@ def rule_toggle(request, uuid):
     rule.is_active = not rule.is_active
     rule.save(update_fields=['is_active'])
 
-    # Apply to existing jobs when rule is activated
-    if rule.is_active:
-        apply_rule_to_existing_jobs.delay(rule.id)
+    if request.htmx:
+        rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
+        return render(request, 'rules/rule_list_inner.html', {'rules': rules})
+
+    return redirect('rules:rule_list')
+
+
+@login_required
+def rule_apply(request, uuid):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    rule = get_object_or_404(Rule, uuid=uuid, user=profile)
+
+    from sisyphus.rules.tasks import apply_rule_to_existing_jobs
+    apply_rule_to_existing_jobs.delay(rule.id)
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')

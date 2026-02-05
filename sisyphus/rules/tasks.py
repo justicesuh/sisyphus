@@ -3,10 +3,6 @@ from celery import shared_task
 
 @shared_task
 def apply_rule_to_existing_jobs(rule_id):
-    """
-    Apply a rule to all existing jobs with NEW or SAVED status.
-    Used for bulk application when a new rule is created.
-    """
     from sisyphus.jobs.models import Job
     from sisyphus.rules.models import Rule, RuleMatch
 

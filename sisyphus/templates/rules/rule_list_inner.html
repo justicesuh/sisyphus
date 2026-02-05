@@ -37,6 +37,12 @@
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
+                        <form method="post" action="{% url 'rules:rule_apply' rule.uuid %}" hx-post="{% url 'rules:rule_apply' rule.uuid %}" hx-target="#rules-list" hx-swap="innerHTML">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-success" title="Apply to existing jobs">
+                                <i class="bi bi-lightning"></i>
+                            </button>
+                        </form>
                         <form method="post" action="{% url 'rules:rule_toggle' rule.uuid %}" hx-post="{% url 'rules:rule_toggle' rule.uuid %}" hx-target="#rules-list" hx-swap="innerHTML">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-secondary" title="{% if rule.is_active %}Deactivate{% else %}Activate{% endif %}">
