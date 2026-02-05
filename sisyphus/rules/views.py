@@ -3,7 +3,6 @@ from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 
 from sisyphus.accounts.models import UserProfile
-from sisyphus.jobs.models import Job
 from sisyphus.rules.models import Rule, RuleCondition
 from sisyphus.rules.tasks import apply_rule_to_existing_jobs
 
@@ -25,13 +24,11 @@ def rule_create(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
-        target_status = request.POST.get('target_status', Job.Status.FILTERED)
         priority = int(request.POST.get('priority', 0))
         rule = Rule.objects.create(
             user=profile,
             name=name,
             match_mode=match_mode,
-            target_status=target_status,
             priority=priority,
         )
 
@@ -59,7 +56,6 @@ def rule_create(request):
 
     return render(request, 'rules/rule_form.html', {
         'match_mode_choices': Rule.MatchMode.choices,
-        'status_choices': Job.Status.choices,
         'field_choices': RuleCondition.Field.choices,
         'match_type_choices': RuleCondition.MatchType.choices,
     })
@@ -73,7 +69,6 @@ def rule_edit(request, uuid):
     if request.method == 'POST':
         rule.name = request.POST.get('name', '').strip()
         rule.match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
-        rule.target_status = request.POST.get('target_status', Job.Status.FILTERED)
         rule.priority = int(request.POST.get('priority', 0))
         rule.save()
 
@@ -108,7 +103,6 @@ def rule_edit(request, uuid):
         'rule': rule,
         'conditions': conditions,
         'match_mode_choices': Rule.MatchMode.choices,
-        'status_choices': Job.Status.choices,
         'field_choices': RuleCondition.Field.choices,
         'match_type_choices': RuleCondition.MatchType.choices,
     })

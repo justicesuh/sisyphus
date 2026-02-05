@@ -17,7 +17,7 @@ class Rule(UUIDModel):
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     match_mode = models.CharField(max_length=3, choices=MatchMode.choices, default=MatchMode.ALL)
-    target_status = models.CharField(max_length=12, choices=Job.Status.choices)
+    target_status = models.CharField(max_length=12, choices=Job.Status.choices, default=Job.Status.FILTERED)
     priority = models.PositiveIntegerField(default=0, help_text=_('Higher priority rules are evaluated first'))
 
     class Meta:

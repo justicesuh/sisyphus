@@ -19,7 +19,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="match_mode" class="form-label">Match Mode</label>
                             <select name="match_mode" id="match_mode" class="form-select">
                                 {% for value, label in match_mode_choices %}
@@ -27,15 +27,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label for="target_status" class="form-label">Target Status</label>
-                            <select name="target_status" id="target_status" class="form-select">
-                                {% for value, label in status_choices %}
-                                <option value="{{ value }}" {% if rule.target_status == value %}selected{% endif %}>{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="priority" class="form-label">Priority</label>
                             <input type="number" name="priority" id="priority" class="form-control" min="0" value="{{ rule.priority|default:0 }}">
                             <div class="form-text">Higher = evaluated first</div>

@@ -6,7 +6,6 @@
                 <th>Name</th>
                 <th>Conditions</th>
                 <th>Match Mode</th>
-                <th>Target Status</th>
                 <th>Priority</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -28,9 +27,6 @@
                     {% endfor %}
                 </td>
                 <td>{{ rule.get_match_mode_display }}</td>
-                <td>
-                    <span class="badge bg-secondary">{{ rule.get_target_status_display }}</span>
-                </td>
                 <td>{{ rule.priority }}</td>
                 <td>
                     {% if rule.is_active %}
