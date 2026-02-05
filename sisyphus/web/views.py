@@ -223,10 +223,10 @@ def job_review(request):
     if filter_status not in ['new', 'saved']:
         filter_status = 'new'
 
-    job = Job.objects.filter(status=filter_status).select_related('company', 'location').order_by('-date_posted').first()
+    job = Job.objects.filter(status=filter_status, populated=True).select_related('company', 'location').order_by('-date_posted').first()
 
-    new_count = Job.objects.filter(status=Job.Status.NEW).count()
-    saved_count = Job.objects.filter(status=Job.Status.SAVED).count()
+    new_count = Job.objects.filter(status=Job.Status.NEW, populated=True).count()
+    saved_count = Job.objects.filter(status=Job.Status.SAVED, populated=True).count()
 
     return render(request, 'jobs/job_review.html', {
         'job': job,
