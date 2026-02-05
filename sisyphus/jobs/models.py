@@ -105,11 +105,21 @@ class Job(UUIDModel):
     def update_status(self, new_status):
         if self.cached_status == new_status:
             return
+
+        update_fields = ['status', 'date_status_changed']
+
+        if new_status == self.Status.BANNED:
+            self.pre_ban_status = self.cached_status
+            update_fields.append('pre_ban_status')
+        elif self.cached_status == self.Status.BANNED:
+            self.pre_ban_status = None
+            update_fields.append('pre_ban_status')
+
         self.status = new_status
         event = JobEvent.objects.create(job=self, old_status=self.cached_status, new_status=self.status)
         self.cached_status = self.status
         self.date_status_changed = event.created_at
-        self.save(update_fields=['status', 'date_status_changed'])
+        self.save(update_fields=update_fields)
 
 
 class JobEvent(UUIDModel):
