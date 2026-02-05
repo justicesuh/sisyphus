@@ -9,9 +9,9 @@ from sisyphus.rules.services import apply_rules_to_job
 def apply_rules_on_job_save(sender, instance, created, **kwargs):
     """
     Apply rules when a job is created or when populated becomes True.
-    Only applies to jobs with NEW status.
+    Only applies to jobs with NEW or SAVED status.
     """
-    if instance.status != Job.Status.NEW:
+    if instance.status not in (Job.Status.NEW, Job.Status.SAVED):
         return
 
     # Apply rules on creation

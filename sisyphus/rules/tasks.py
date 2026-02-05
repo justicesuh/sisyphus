@@ -4,7 +4,7 @@ from celery import shared_task
 @shared_task
 def apply_rule_to_existing_jobs(rule_id):
     """
-    Apply a rule to all existing jobs with NEW status.
+    Apply a rule to all existing jobs with NEW or SAVED status.
     Used for bulk application when a new rule is created.
     """
     from sisyphus.jobs.models import Job
@@ -18,7 +18,7 @@ def apply_rule_to_existing_jobs(rule_id):
     if not rule.is_active:
         return {'skipped': True, 'reason': 'Rule is not active'}
 
-    jobs = Job.objects.filter(status=Job.Status.NEW)
+    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED])
     matched_count = 0
 
     for job in jobs:

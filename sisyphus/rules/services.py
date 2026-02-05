@@ -5,10 +5,10 @@ from sisyphus.rules.models import Rule, RuleMatch
 def apply_rules_to_job(job):
     """
     Apply all active rules to a job in priority order.
-    Only applies to jobs with NEW status.
+    Only applies to jobs with NEW or SAVED status.
     Returns the RuleMatch if a rule matched and changed status, None otherwise.
     """
-    if job.status != Job.Status.NEW:
+    if job.status not in (Job.Status.NEW, Job.Status.SAVED):
         return None
 
     rules = Rule.objects.filter(
