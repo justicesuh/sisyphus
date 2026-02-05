@@ -11,6 +11,7 @@
     </div>
 </div>
 
+{# --- Applied Cards --- #}
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-3">
         <div class="card text-center h-100">
@@ -46,47 +47,174 @@
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Jobs by Status</h5>
+{# --- Jobs by Status + Application Pipeline --- #}
+<div class="row g-3 mb-3">
+    <div class="col-lg-8">
+        <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Jobs by Status</h5>
     </div>
-    <div class="card-body">
-        <canvas id="status-chart"></canvas>
+    <div class="col-lg-4">
+        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Application Pipeline</h5>
     </div>
 </div>
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-body">
+                <canvas id="status-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="d-flex flex-column gap-3 h-100">
+            <div class="card text-center flex-fill">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="fs-2 fw-bold text-info">{{ response_rate }}%</div>
+                    <div class="text-muted">Response Rate</div>
+                </div>
+            </div>
+            <div class="card text-center flex-fill">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="fs-2 fw-bold text-info">{{ active_pipeline }}</div>
+                    <div class="text-muted">Active Pipeline</div>
+                </div>
+            </div>
+            <div class="card text-center flex-fill">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="fs-2 fw-bold text-info">{{ offer_rate }}%</div>
+                    <div class="text-muted">Offer Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# === 2. Job Discovery === #}
+<h5 class="mb-3"><i class="bi bi-search me-2"></i>Job Discovery</h5>
+<div class="row g-3 mb-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Jobs Found Daily (Last 7 Days)</div>
+            <div class="card-body">
+                <canvas id="daily-found-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="card h-100">
+            <div class="card-header">Pending Review</div>
+            <div class="card-body d-flex align-items-center justify-content-center">
+                <canvas id="pending-review-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3">
+        <div class="row g-3 h-100">
+            <div class="col-12">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="fs-2 fw-bold text-warning">{{ dismiss_rate }}%</div>
+                        <div class="text-muted">Dismiss Rate</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="fs-4 fw-bold text-success">{{ save_events }}</div>
+                        <div class="text-muted small">Saved</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="fs-4 fw-bold text-secondary">{{ dismiss_events }}</div>
+                        <div class="text-muted small">Dismissed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# === 3. Time-based Trends === #}
+<h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Time-based Trends</h5>
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header">Applications Over Time (12 Weeks)</div>
+            <div class="card-body">
+                <canvas id="weekly-apps-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="d-flex flex-column gap-3 h-100">
+            <div class="card text-center flex-fill">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="fs-2 fw-bold text-primary">
+                        {% if avg_saved_to_applied != None %}{{ avg_saved_to_applied }}{% else %}--{% endif %}
+                    </div>
+                    <div class="text-muted">Avg Days Saved &rarr; Applied</div>
+                </div>
+            </div>
+            <div class="card text-center flex-fill">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                    <div class="fs-2 fw-bold text-primary">
+                        {% if avg_applied_to_response != None %}{{ avg_applied_to_response }}{% else %}--{% endif %}
+                    </div>
+                    <div class="text-muted">Avg Days Applied &rarr; Response</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
-    const data = JSON.parse('{{ status_chart_json|escapejs }}');
-    const chart = new Chart(document.getElementById('status-chart'), {
+    // --- Jobs by Status (clickable, horizontal log-scale) ---
+    const statusData = JSON.parse('{{ status_chart_json|escapejs }}');
+    new Chart(document.getElementById('status-chart'), {
         type: 'bar',
         data: {
-            labels: data.labels,
+            labels: statusData.labels,
             datasets: [{
-                data: data.counts,
-                backgroundColor: data.colors,
+                data: statusData.counts,
+                backgroundColor: statusData.colors,
             }]
         },
         options: {
+            indexAxis: 'y',
             plugins: {
-                legend: {
-                    display: false,
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            return ctx.parsed.x.toLocaleString() + ' jobs';
+                        }
+                    }
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
+                x: {
+                    type: 'logarithmic',
                     ticks: {
-                        precision: 0,
+                        callback: function(value) {
+                            if ([1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000].includes(value)) {
+                                return value.toLocaleString();
+                            }
+                            return null;
+                        }
                     }
                 }
             },
             onClick: function(event, elements) {
                 if (elements.length > 0) {
                     const index = elements[0].index;
-                    window.location.href = '{% url "jobs:job_list" %}?status=' + data.values[index];
+                    window.location.href = '{% url "jobs:job_list" %}?status=' + statusData.values[index];
                 }
             },
             onHover: function(event, elements) {
@@ -94,5 +222,63 @@
             }
         }
     });
+
+    // --- Jobs Found Daily ---
+    const dailyData = JSON.parse('{{ daily_found_chart_json|escapejs }}');
+    new Chart(document.getElementById('daily-found-chart'), {
+        type: 'bar',
+        data: {
+            labels: dailyData.labels,
+            datasets: [{
+                label: 'Jobs Found',
+                data: dailyData.counts,
+                backgroundColor: '#0d6efd',
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        }
+    });
+
+    // --- Pending Review Doughnut ---
+    const pendingData = JSON.parse('{{ pending_review_chart_json|escapejs }}');
+    new Chart(document.getElementById('pending-review-chart'), {
+        type: 'doughnut',
+        data: {
+            labels: pendingData.labels,
+            datasets: [{
+                data: pendingData.counts,
+                backgroundColor: pendingData.colors,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { position: 'bottom' },
+            },
+        }
+    });
+
+    // --- Applications Over Time (line chart) ---
+    const weeklyData = JSON.parse('{{ weekly_apps_chart_json|escapejs }}');
+    new Chart(document.getElementById('weekly-apps-chart'), {
+        type: 'line',
+        data: {
+            labels: weeklyData.labels,
+            datasets: [{
+                label: 'Applications',
+                data: weeklyData.counts,
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.3,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        }
+    });
+
 </script>
 {% endblock %}
