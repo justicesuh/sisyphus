@@ -10,12 +10,18 @@
                 <h5 class="mb-0">{% if rule %}Edit Rule{% else %}Create Rule{% endif %}</h5>
             </div>
             <div class="card-body">
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{ error }}
+                </div>
+                {% endif %}
+
                 <form method="post" id="rule-form">
                     {% csrf_token %}
 
                     <div class="mb-3">
                         <label for="name" class="form-label">Rule Name</label>
-                        <input type="text" name="name" id="name" class="form-control" required value="{{ rule.name|default:'' }}">
+                        <input type="text" name="name" id="name" class="form-control" required value="{% if form_data %}{{ form_data.name }}{% elif rule %}{{ rule.name }}{% endif %}">
                     </div>
 
                     <div class="row mb-3">
@@ -23,7 +29,7 @@
                             <label for="match_mode" class="form-label">Match Mode</label>
                             <select name="match_mode" id="match_mode" class="form-select">
                                 {% for value, label in match_mode_choices %}
-                                <option value="{{ value }}" {% if rule.match_mode == value %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if form_data and form_data.match_mode == value %}selected{% elif rule and rule.match_mode == value %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -31,13 +37,13 @@
                             <label for="target_status" class="form-label">Target Status</label>
                             <select name="target_status" id="target_status" class="form-select">
                                 {% for value, label in status_choices %}
-                                <option value="{{ value }}" {% if rule.target_status == value %}selected{% elif not rule and value == 'filtered' %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ value }}" {% if form_data and form_data.target_status == value %}selected{% elif rule and rule.target_status == value %}selected{% elif not rule and not form_data and value == 'filtered' %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-4">
                             <label for="priority" class="form-label">Priority</label>
-                            <input type="number" name="priority" id="priority" class="form-control" min="0" value="{{ rule.priority|default:0 }}">
+                            <input type="number" name="priority" id="priority" class="form-control" min="0" value="{% if form_data %}{{ form_data.priority }}{% elif rule %}{{ rule.priority }}{% else %}0{% endif %}">
                             <div class="form-text">Higher = evaluated first</div>
                         </div>
                     </div>

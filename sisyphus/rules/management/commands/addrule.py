@@ -42,11 +42,17 @@ class Command(BaseCommand):
         status = options['status']
         priority = 10 if status == Job.Status.SAVED else 0
 
+        # Check for duplicate rule
+        conditions = [{'field': field, 'match_type': match_type, 'value': value}]
+        duplicate = Rule.find_duplicate(profile, Rule.MatchMode.ALL, status, conditions)
+        if duplicate:
+            raise CommandError(f'A rule with these settings already exists: \'{duplicate.name}\'.')
+
         rule = Rule.objects.create(
             user=profile,
             name=value,
             match_mode=Rule.MatchMode.ALL,
-            target_status=options['status'],
+            target_status=status,
             priority=priority,
         )
         RuleCondition.objects.create(

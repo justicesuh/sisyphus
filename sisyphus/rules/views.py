@@ -17,6 +17,24 @@ def rule_list(request):
     })
 
 
+def _parse_conditions_from_post(request):
+    """Parse conditions from POST data."""
+    conditions = []
+    condition_count = int(request.POST.get('condition_count', 0))
+    for i in range(condition_count):
+        field = request.POST.get(f'condition_{i}_field')
+        match_type = request.POST.get(f'condition_{i}_match_type')
+        value = request.POST.get(f'condition_{i}_value', '').strip()
+
+        if field and match_type and value:
+            conditions.append({
+                'field': field,
+                'match_type': match_type,
+                'value': value,
+            })
+    return conditions
+
+
 @login_required
 def rule_create(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -26,6 +44,29 @@ def rule_create(request):
         match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
         target_status = request.POST.get('target_status', Job.Status.FILTERED)
         priority = int(request.POST.get('priority', 0))
+
+        conditions = _parse_conditions_from_post(request)
+
+        # Check for duplicate rule
+        duplicate = Rule.find_duplicate(profile, match_mode, target_status, conditions)
+        if duplicate:
+            return render(request, 'rules/rule_form.html', {
+                'error': f'A rule with these settings already exists: "{duplicate.name}"',
+                'match_mode_choices': Rule.MatchMode.choices,
+                'status_choices': Job.Status.choices,
+                'field_choices': RuleCondition.Field.choices,
+                'match_type_choices': RuleCondition.MatchType.choices,
+                'form_data': {
+                    'name': name,
+                    'match_mode': match_mode,
+                    'target_status': target_status,
+                    'priority': priority,
+                },
+                'conditions': [
+                    type('Condition', (), c)() for c in conditions
+                ],
+            })
+
         rule = Rule.objects.create(
             user=profile,
             name=name,
@@ -34,20 +75,8 @@ def rule_create(request):
             priority=priority,
         )
 
-        # Process conditions
-        condition_count = int(request.POST.get('condition_count', 0))
-        for i in range(condition_count):
-            field = request.POST.get(f'condition_{i}_field')
-            match_type = request.POST.get(f'condition_{i}_match_type')
-            value = request.POST.get(f'condition_{i}_value', '').strip()
-
-            if field and match_type and value:
-                RuleCondition.objects.create(
-                    rule=rule,
-                    field=field,
-                    match_type=match_type,
-                    value=value,
-                )
+        for condition in conditions:
+            RuleCondition.objects.create(rule=rule, **condition)
 
         return redirect('rules:rule_list')
 
@@ -65,28 +94,38 @@ def rule_edit(request, uuid):
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
 
     if request.method == 'POST':
-        rule.name = request.POST.get('name', '').strip()
-        rule.match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
-        rule.target_status = request.POST.get('target_status', Job.Status.FILTERED)
-        rule.priority = int(request.POST.get('priority', 0))
+        name = request.POST.get('name', '').strip()
+        match_mode = request.POST.get('match_mode', Rule.MatchMode.ALL)
+        target_status = request.POST.get('target_status', Job.Status.FILTERED)
+        priority = int(request.POST.get('priority', 0))
+
+        conditions = _parse_conditions_from_post(request)
+
+        # Check for duplicate rule (excluding current rule)
+        duplicate = Rule.find_duplicate(profile, match_mode, target_status, conditions, exclude_rule=rule)
+        if duplicate:
+            return render(request, 'rules/rule_form.html', {
+                'rule': rule,
+                'error': f'A rule with these settings already exists: "{duplicate.name}"',
+                'match_mode_choices': Rule.MatchMode.choices,
+                'status_choices': Job.Status.choices,
+                'field_choices': RuleCondition.Field.choices,
+                'match_type_choices': RuleCondition.MatchType.choices,
+                'conditions': [
+                    type('Condition', (), c)() for c in conditions
+                ],
+            })
+
+        rule.name = name
+        rule.match_mode = match_mode
+        rule.target_status = target_status
+        rule.priority = priority
         rule.save()
 
         # Delete existing conditions and recreate
         rule.conditions.all().delete()
-
-        condition_count = int(request.POST.get('condition_count', 0))
-        for i in range(condition_count):
-            field = request.POST.get(f'condition_{i}_field')
-            match_type = request.POST.get(f'condition_{i}_match_type')
-            value = request.POST.get(f'condition_{i}_value', '').strip()
-
-            if field and match_type and value:
-                RuleCondition.objects.create(
-                    rule=rule,
-                    field=field,
-                    match_type=match_type,
-                    value=value,
-                )
+        for condition in conditions:
+            RuleCondition.objects.create(rule=rule, **condition)
 
         return redirect('rules:rule_list')
 

@@ -36,6 +36,46 @@ class Rule(UUIDModel):
         else:
             return any(condition.matches(job) for condition in conditions)
 
+    @classmethod
+    def find_duplicate(cls, user, match_mode, target_status, conditions, exclude_rule=None):
+        """
+        Find an existing rule with the same settings and conditions.
+
+        Args:
+            user: UserProfile instance
+            match_mode: Rule.MatchMode value
+            target_status: Job.Status value
+            conditions: List of dicts with 'field', 'match_type', 'value' keys
+            exclude_rule: Optional Rule instance to exclude (for edits)
+
+        Returns:
+            Rule instance if duplicate found, None otherwise
+        """
+        queryset = cls.objects.filter(
+            user=user,
+            match_mode=match_mode,
+            target_status=target_status,
+        )
+
+        if exclude_rule:
+            queryset = queryset.exclude(pk=exclude_rule.pk)
+
+        # Normalize conditions for comparison
+        condition_set = frozenset(
+            (c['field'], c['match_type'], c['value'])
+            for c in conditions
+        )
+
+        for rule in queryset.prefetch_related('conditions'):
+            rule_conditions = frozenset(
+                (c.field, c.match_type, c.value)
+                for c in rule.conditions.all()
+            )
+            if rule_conditions == condition_set:
+                return rule
+
+        return None
+
 
 class RuleCondition(UUIDModel):
     class Field(models.TextChoices):
