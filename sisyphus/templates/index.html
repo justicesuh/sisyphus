@@ -3,52 +3,96 @@
 {% block title %}Dashboard - Sisyphus{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Dashboard</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Dashboard</h1>
+    <div class="d-flex align-items-center gap-3">
+        <span class="text-muted">{{ to_review }} to review</span>
+        <a href="{% url 'jobs:job_review' %}" class="btn btn-primary">Review Jobs</a>
+    </div>
+</div>
 
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-lg-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="fs-2 fw-bold">{{ to_review }}</div>
-                <div class="text-muted">To Review</div>
-            </div>
-            <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="{% url 'jobs:job_review' %}" class="btn btn-sm btn-outline-primary w-100">Review Jobs</a>
+                <div class="fs-2 fw-bold text-success">{{ applied_today }}</div>
+                <div class="text-muted">Applied Today</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="fs-2 fw-bold text-warning">{{ saved }}</div>
-                <div class="text-muted">Saved</div>
-            </div>
-            <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="{% url 'jobs:job_list' %}?status=saved" class="btn btn-sm btn-outline-warning w-100">View Saved</a>
+                <div class="fs-2 fw-bold text-success">{{ applied_7d }}</div>
+                <div class="text-muted">Last 7 Days</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="fs-2 fw-bold text-success">{{ applied }}</div>
-                <div class="text-muted">Applied</div>
-            </div>
-            <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="{% url 'jobs:job_list' %}?status=applied" class="btn btn-sm btn-outline-success w-100">View Applied</a>
+                <div class="fs-2 fw-bold text-success">{{ applied_30d }}</div>
+                <div class="text-muted">Last 30 Days</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-lg-3">
         <div class="card text-center h-100">
             <div class="card-body">
-                <div class="fs-2 fw-bold text-info">{{ interviewing }}</div>
-                <div class="text-muted">Interviewing</div>
-            </div>
-            <div class="card-footer bg-transparent border-0 pt-0">
-                <a href="{% url 'jobs:job_list' %}?status=interviewing" class="btn btn-sm btn-outline-info w-100">View Active</a>
+                <div class="fs-2 fw-bold text-success">{{ applied_total }}</div>
+                <div class="text-muted">Total Applied</div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Jobs by Status</h5>
+    </div>
+    <div class="card-body">
+        <canvas id="status-chart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+    const data = JSON.parse('{{ status_chart_json|escapejs }}');
+    const chart = new Chart(document.getElementById('status-chart'), {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.counts,
+                backgroundColor: data.colors,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    display: false,
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0,
+                    }
+                }
+            },
+            onClick: function(event, elements) {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    window.location.href = '{% url "jobs:job_list" %}?status=' + data.values[index];
+                }
+            },
+            onHover: function(event, elements) {
+                event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+            }
+        }
+    });
+</script>
 {% endblock %}

@@ -64,12 +64,6 @@ class Job(UUIDModel):
     def __str__(self):
         return self.title
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        if self.status == self.Status.APPLIED:
-            from sisyphus.applications.models import Application
-            Application.objects.get_or_create(job=self)
-
     def add_note(self, text):
         return JobNote.objects.create(job=self, text=text)
 
