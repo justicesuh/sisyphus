@@ -5,7 +5,7 @@
 {% block content %}
 <nav aria-label="breadcrumb" class="mb-4">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'web:company_list' %}">Companies</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'companies:company_list' %}">Companies</a></li>
         <li class="breadcrumb-item active">{{ company.name|truncatechars:50 }}</li>
     </ol>
 </nav>

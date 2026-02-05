@@ -33,7 +33,7 @@
     </div>
     {% if current_search or current_status or current_flexibility %}
     <div class="col-auto">
-        <a href="{% url 'web:job_list' %}" class="btn btn-outline-secondary">Clear</a>
+        <a href="{% url 'jobs:job_list' %}" class="btn btn-outline-secondary">Clear</a>
     </div>
     {% endif %}
 </form>
@@ -73,8 +73,8 @@
         <tbody>
             {% for job in page %}
             <tr>
-                <td><a href="{% url 'web:job_detail' job.uuid %}">{{ job.title }}</a></td>
-                <td><a href="{% url 'web:company_detail' job.company.uuid %}">{{ job.company.name }}</a></td>
+                <td><a href="{% url 'jobs:job_detail' job.uuid %}">{{ job.title }}</a></td>
+                <td><a href="{% url 'companies:company_detail' job.company.uuid %}">{{ job.company.name }}</a></td>
                 <td>{{ job.location.name|default:"-" }}</td>
                 <td>
                     {% if job.flexibility %}

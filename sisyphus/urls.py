@@ -4,7 +4,9 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('', include('sisyphus.web.urls')),
+    path('', include('sisyphus.jobs.urls')),
+    path('', include('sisyphus.accounts.urls')),
+    path('companies/', include('sisyphus.companies.urls')),
     path('rules/', include('sisyphus.rules.urls')),
     path('admin/', admin.site.urls),
 ]

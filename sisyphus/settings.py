@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_celery_beat',
     'django_htmx',
     'sisyphus.accounts',
     'sisyphus.companies',
@@ -41,8 +42,6 @@ INSTALLED_APPS = [
     'sisyphus.jobs',
     'sisyphus.resumes',
     'sisyphus.rules',
-    'sisyphus.web',
-    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -131,9 +130,9 @@ STATICFILES_DIRS = [
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR.parent / 'media'
 
-LOGIN_URL = 'web:login'
-LOGIN_REDIRECT_URL = 'web:index'
-LOGOUT_REDIRECT_URL = 'web:index'
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'jobs:index'
+LOGOUT_REDIRECT_URL = 'jobs:index'
 
 # Celery configuration
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')

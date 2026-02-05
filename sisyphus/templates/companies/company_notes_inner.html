@@ -3,7 +3,7 @@
     <div class="d-flex justify-content-between align-items-start">
         <p class="mb-1">{{ note.text }}</p>
         <button type="button" class="btn btn-link btn-sm text-danger p-0 ms-2" title="Delete note"
-                hx-post="{% url 'web:company_delete_note' company.uuid note.id %}"
+                hx-post="{% url 'companies:company_delete_note' company.uuid note.id %}"
                 hx-target="#company-notes"
                 hx-swap="innerHTML"
                 hx-confirm="Delete this note?">
@@ -20,7 +20,7 @@
         <textarea id="company-note-text" name="text" class="form-control" rows="2" placeholder="Add a note..."></textarea>
     </div>
     <button type="button" class="btn btn-primary btn-sm"
-            hx-post="{% url 'web:company_add_note' company.uuid %}"
+            hx-post="{% url 'companies:company_add_note' company.uuid %}"
             hx-target="#company-notes"
             hx-swap="innerHTML"
             hx-include="#company-note-text">

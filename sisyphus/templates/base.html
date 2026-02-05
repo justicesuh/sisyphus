@@ -14,7 +14,7 @@
     {% block body %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'web:index' %}">Sisyphus</a>
+            <a class="navbar-brand" href="{% url 'jobs:index' %}">Sisyphus</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -22,13 +22,13 @@
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'web:job_review' %}">Review</a>
+                        <a class="nav-link" href="{% url 'jobs:job_review' %}">Review</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'web:job_list' %}">Jobs</a>
+                        <a class="nav-link" href="{% url 'jobs:job_list' %}">Jobs</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'web:company_list' %}">Companies</a>
+                        <a class="nav-link" href="{% url 'companies:company_list' %}">Companies</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'rules:rule_list' %}">Rules</a>
@@ -43,11 +43,11 @@
                             {{ user.email }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: auto;">
-                            <li><a class="dropdown-item py-2" href="{% url 'web:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'accounts:profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
                             <li><a class="dropdown-item py-2" href="{% url 'admin:index' %}"><i class="bi bi-gear me-2"></i>Admin</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
-                                <form method="post" action="{% url 'web:logout' %}">
+                                <form method="post" action="{% url 'accounts:logout' %}">
                                     {% csrf_token %}
                                     <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                                 </form>
@@ -56,7 +56,7 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'web:login' %}">Login</a>
+                        <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
                     </li>
                     {% endif %}
                 </ul>

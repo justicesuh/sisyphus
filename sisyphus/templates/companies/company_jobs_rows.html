@@ -1,6 +1,6 @@
 {% for job in jobs %}
 <tr>
-    <td><a href="{% url 'web:job_detail' job.uuid %}">{{ job.title }}</a></td>
+    <td><a href="{% url 'jobs:job_detail' job.uuid %}">{{ job.title }}</a></td>
     <td>{{ job.location.name|default:"-" }}</td>
     <td>
         <span class="badge {% if job.status == 'new' %}bg-primary{% elif job.status == 'saved' %}bg-warning text-dark{% elif job.status == 'applied' %}bg-success{% elif job.status == 'filtered' or job.status == 'dismissed' %}bg-secondary{% elif job.status == 'banned' %}bg-danger{% else %}bg-dark{% endif %}">

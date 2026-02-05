@@ -28,13 +28,13 @@
                 {% endif %}
                 <small class="text-muted d-block mt-2">Banned on {{ company.banned_at|date:"M j, Y" }}</small>
             </div>
-            <form hx-post="{% url 'web:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
+            <form hx-post="{% url 'companies:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
                 <button type="submit" class="btn btn-success w-100">
                     <i class="bi bi-check-circle me-1"></i>Unban Company
                 </button>
             </form>
             {% else %}
-            <form hx-post="{% url 'web:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
+            <form hx-post="{% url 'companies:company_toggle_ban' company.uuid %}" hx-target="#ban-status" hx-swap="outerHTML">
                 <div class="mb-3">
                     <label for="reason" class="form-label">Reason (optional)</label>
                     <textarea name="reason" id="reason" class="form-control" rows="2" placeholder="Why is this company being banned?"></textarea>

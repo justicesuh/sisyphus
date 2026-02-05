@@ -24,7 +24,7 @@
     </div>
     {% if current_search or current_banned %}
     <div class="col-auto">
-        <a href="{% url 'web:company_list' %}" class="btn btn-outline-secondary">Clear</a>
+        <a href="{% url 'companies:company_list' %}" class="btn btn-outline-secondary">Clear</a>
     </div>
     {% endif %}
 </form>
@@ -51,7 +51,7 @@
         <tbody>
             {% for company in page %}
             <tr>
-                <td><a href="{% url 'web:company_detail' company.uuid %}">{{ company.name }}</a></td>
+                <td><a href="{% url 'companies:company_detail' company.uuid %}">{{ company.name }}</a></td>
                 <td>
                     {% if company.website %}
                     <a href="{{ company.website }}" target="_blank" rel="noopener">{{ company.website|truncatechars:40 }}</a>
