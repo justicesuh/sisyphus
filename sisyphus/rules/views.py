@@ -37,7 +37,6 @@ def rule_create(request):
             field = request.POST.get(f'condition_{i}_field')
             match_type = request.POST.get(f'condition_{i}_match_type')
             value = request.POST.get(f'condition_{i}_value', '').strip()
-            case_sensitive = request.POST.get(f'condition_{i}_case_sensitive') == 'on'
 
             if field and match_type and value:
                 RuleCondition.objects.create(
@@ -45,7 +44,6 @@ def rule_create(request):
                     field=field,
                     match_type=match_type,
                     value=value,
-                    case_sensitive=case_sensitive,
                 )
 
         return redirect('rules:rule_list')
@@ -76,7 +74,6 @@ def rule_edit(request, uuid):
             field = request.POST.get(f'condition_{i}_field')
             match_type = request.POST.get(f'condition_{i}_match_type')
             value = request.POST.get(f'condition_{i}_value', '').strip()
-            case_sensitive = request.POST.get(f'condition_{i}_case_sensitive') == 'on'
 
             if field and match_type and value:
                 RuleCondition.objects.create(
@@ -84,7 +81,6 @@ def rule_edit(request, uuid):
                     field=field,
                     match_type=match_type,
                     value=value,
-                    case_sensitive=case_sensitive,
                 )
 
         return redirect('rules:rule_list')
@@ -146,6 +142,9 @@ def rule_apply(request, uuid):
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
-        return render(request, 'rules/rule_list_inner.html', {'rules': rules})
+        return render(request, 'rules/rule_list_inner.html', {
+            'rules': rules,
+            'message': f'Rule "{rule.name}" is being applied to existing jobs.',
+        })
 
     return redirect('rules:rule_list')

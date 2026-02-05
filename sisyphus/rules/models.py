@@ -77,7 +77,8 @@ class RuleCondition(UUIDModel):
         field_value = self._get_field_value(job)
         pattern = self.value
 
-        if not self.case_sensitive and self.match_type != self.MatchType.REGEX:
+        # Always case-insensitive for non-regex matches
+        if self.match_type != self.MatchType.REGEX:
             field_value = field_value.lower()
             pattern = pattern.lower()
 
@@ -86,9 +87,8 @@ class RuleCondition(UUIDModel):
         elif self.match_type == self.MatchType.EXACT:
             return pattern == field_value
         elif self.match_type == self.MatchType.REGEX:
-            flags = 0 if self.case_sensitive else re.IGNORECASE
             try:
-                return bool(re.search(pattern, field_value, flags))
+                return bool(re.search(pattern, field_value, re.IGNORECASE))
             except re.error:
                 return False
         elif self.match_type == self.MatchType.NOT_CONTAINS:
@@ -98,7 +98,7 @@ class RuleCondition(UUIDModel):
 
 
 class RuleMatch(UUIDModel):
-    rule = models.ForeignKey(Rule, related_name='matches', on_delete=models.CASCADE)
+    rule = models.ForeignKey(Rule, related_name='match_history', on_delete=models.CASCADE)
     job = models.ForeignKey(Job, related_name='rule_matches', on_delete=models.CASCADE)
     old_status = models.CharField(max_length=12, choices=Job.Status.choices)
     new_status = models.CharField(max_length=12, choices=Job.Status.choices)
