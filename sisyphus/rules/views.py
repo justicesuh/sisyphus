@@ -193,3 +193,23 @@ def rule_apply(request, uuid):
         })
 
     return redirect('rules:rule_list')
+
+
+@login_required
+def rule_apply_all(request):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    from sisyphus.rules.tasks import apply_all_rules
+    apply_all_rules.delay(profile.id)
+
+    if request.htmx:
+        rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
+        return render(request, 'rules/rule_list_inner.html', {
+            'rules': rules,
+            'message': 'All rules are being applied to existing jobs.',
+        })
+
+    return redirect('rules:rule_list')
