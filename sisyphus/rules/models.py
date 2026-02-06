@@ -26,7 +26,7 @@ class Rule(UUIDModel):
     priority = models.PositiveIntegerField(default=0, help_text=_('Higher priority rules are evaluated first'))
 
     class Meta:
-        ordering = ['-priority', 'name']  # noqa: RUF012
+        ordering = ('-priority', 'name')
 
     def __str__(self) -> str:
         """Return the rule name."""

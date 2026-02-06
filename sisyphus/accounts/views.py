@@ -1,21 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.decorators import login_required
-from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
+
+if TYPE_CHECKING:
+    from sisyphus.core.types import AuthedHttpRequest, HtmxHttpRequest
 
 from sisyphus.accounts.models import UserProfile, get_timezone_choices
 from sisyphus.resumes.models import Resume
 
 
 @login_required
-def profile(request: HttpRequest) -> HttpResponse:
+def profile(request: AuthedHttpRequest) -> HttpResponse:
     """Display and update the user's profile."""
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        user = request.user
-        user.first_name = request.POST.get('first_name', '').strip()  # type: ignore[union-attr]
-        user.last_name = request.POST.get('last_name', '').strip()  # type: ignore[union-attr]
-        user.save()
+        request.user.first_name = request.POST.get('first_name', '').strip()
+        request.user.last_name = request.POST.get('last_name', '').strip()
+        request.user.save()
 
         timezone = request.POST.get('timezone', 'UTC')
         valid_timezones = [tz[0] for tz in get_timezone_choices()]
@@ -40,7 +46,7 @@ def profile(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def resume_upload(request: HttpRequest) -> HttpResponse:
+def resume_upload(request: HtmxHttpRequest) -> HttpResponse:
     """Handle resume file upload."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -62,7 +68,7 @@ def resume_upload(request: HttpRequest) -> HttpResponse:
         resume = Resume.objects.create(user=user_profile, name=name, file=file)
         resume.extract_text()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         current_resume: Resume | None = getattr(user_profile, 'resume', None)
         return render(request, 'profile_resumes.html', {'resume': current_resume})
 
@@ -70,7 +76,7 @@ def resume_upload(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def resume_delete(request: HttpRequest) -> HttpResponse:
+def resume_delete(request: HtmxHttpRequest) -> HttpResponse:
     """Handle resume deletion."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -81,7 +87,7 @@ def resume_delete(request: HttpRequest) -> HttpResponse:
         user_profile.resume.file.delete()
         user_profile.resume.delete()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(request, 'profile_resumes.html', {'resume': None})
 
     return redirect('accounts:profile')

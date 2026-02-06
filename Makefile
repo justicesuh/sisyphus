@@ -26,10 +26,6 @@ serve:
 check:
 	docker exec -it sisyphus_django uv run manage.py check
 
-.PHONY: typecheck
-typecheck:
-	docker exec -it sisyphus_django uv run mypy sisyphus
-
 .PHONY: lint
 lint:
 	docker exec -it sisyphus_django uv run ruff check sisyphus
@@ -41,6 +37,13 @@ fix:
 .PHONY: format
 format:
 	docker exec -it sisyphus_django uv run ruff format sisyphus
+
+.PHONY: type
+type:
+	docker exec -it sisyphus_django uv run mypy sisyphus
+
+.PHONY: ci
+ci: lint type format
 
 .PHONY: migrations
 migrations:

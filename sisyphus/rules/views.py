@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
     from django.http import HttpRequest, HttpResponse
 
+    from sisyphus.core.types import HtmxHttpRequest
+
 from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Job
 from sisyphus.rules.models import Rule, RuleCondition
@@ -176,7 +178,7 @@ def rule_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def rule_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def rule_delete(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Delete a rule."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -185,7 +187,7 @@ def rule_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
     rule.delete()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -195,7 +197,7 @@ def rule_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def rule_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def rule_toggle(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Toggle a rule's active status."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -205,7 +207,7 @@ def rule_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     rule.is_active = not rule.is_active
     rule.save(update_fields=['is_active'])
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -215,7 +217,7 @@ def rule_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def rule_apply(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def rule_apply(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Apply a rule to all existing jobs."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -227,7 +229,7 @@ def rule_apply(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
     apply_rule_to_existing_jobs.delay(rule.id)
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -244,7 +246,7 @@ def rule_apply(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def rule_apply_all(request: HttpRequest) -> HttpResponse:
+def rule_apply_all(request: HtmxHttpRequest) -> HttpResponse:
     """Apply all active rules to existing jobs."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -255,7 +257,7 @@ def rule_apply_all(request: HttpRequest) -> HttpResponse:
 
     apply_all_rules.delay(profile.id)
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)

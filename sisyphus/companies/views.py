@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
     from django.http import HttpRequest, HttpResponse
 
+    from sisyphus.core.types import HtmxHttpRequest
+
 from sisyphus.companies.models import Company, CompanyNote
 
 SORT_OPTIONS = {
@@ -77,7 +79,7 @@ def company_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def company_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def company_add_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Add a note to a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -88,7 +90,7 @@ def company_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if text:
         company.add_note(text)
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(
             request,
             'companies/company_notes_inner.html',
@@ -99,7 +101,7 @@ def company_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def company_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
+def company_delete_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
     """Delete a note from a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -108,7 +110,7 @@ def company_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int)
     company = note.company
     note.delete()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(
             request,
             'companies/company_notes_inner.html',
@@ -119,7 +121,7 @@ def company_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int)
 
 
 @login_required
-def company_toggle_ban(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def company_toggle_ban(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Toggle the banned status of a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -132,7 +134,7 @@ def company_toggle_ban(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpRespons
         reason = request.POST.get('reason', '').strip()
         company.ban(reason)
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         jobs = company.jobs.select_related('location').order_by('-date_posted')
         return render(
             request,

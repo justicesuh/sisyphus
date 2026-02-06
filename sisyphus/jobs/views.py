@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
     from django.http import HttpRequest, HttpResponse
 
+    from sisyphus.core.types import HtmxHttpRequest
+
 from sisyphus.jobs.models import Job, JobNote
 
 SORT_OPTIONS = {
@@ -89,7 +91,7 @@ def job_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
-def job_update_status(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def job_update_status(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Update a job's status."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -101,7 +103,7 @@ def job_update_status(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse
         job.update_status(new_status)
         job.refresh_from_db()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(
             request,
             'jobs/job_status_with_history.html',
@@ -116,7 +118,7 @@ def job_update_status(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse
 
 
 @login_required
-def job_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+def job_add_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Add a note to a job."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -127,14 +129,14 @@ def job_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if text:
         job.add_note(text)
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('jobs:job_detail', uuid=uuid)
 
 
 @login_required
-def job_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
+def job_delete_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
     """Delete a note from a job."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
@@ -143,7 +145,7 @@ def job_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> 
     job = note.job
     note.delete()
 
-    if request.htmx:  # type: ignore[attr-defined]
+    if request.htmx:
         return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('jobs:job_detail', uuid=uuid)
