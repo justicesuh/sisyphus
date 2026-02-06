@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseNotAllowed
+from django.http import HttpRequest, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render
 
 from sisyphus.accounts.models import UserProfile, get_timezone_choices
@@ -7,7 +7,8 @@ from sisyphus.resumes.models import Resume
 
 
 @login_required
-def profile(request):
+def profile(request: HttpRequest) -> HttpResponse:
+    """Display and update the user's profile."""
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
@@ -39,7 +40,8 @@ def profile(request):
 
 
 @login_required
-def resume_upload(request):
+def resume_upload(request: HttpRequest) -> HttpResponse:
+    """Handle resume file upload."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -68,7 +70,8 @@ def resume_upload(request):
 
 
 @login_required
-def resume_delete(request):
+def resume_delete(request: HttpRequest) -> HttpResponse:
+    """Handle resume deletion."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 

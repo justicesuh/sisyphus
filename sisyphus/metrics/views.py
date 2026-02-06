@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import json
 from datetime import timedelta
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -7,10 +10,13 @@ from django.db.models.functions import TruncDay
 from django.shortcuts import render
 from django.utils import timezone
 
+if TYPE_CHECKING:
+    from django.http import HttpRequest, HttpResponse
+
 from sisyphus.jobs.models import Job, JobEvent
 
 
-def _trend(current, previous):
+def _trend(current: int, previous: int) -> dict[str, str]:
     """Return dict with absolute percentage change and direction."""
     if previous == 0:
         if current > 0:
@@ -48,8 +54,44 @@ RESPONSE_STATUSES = {
 }
 
 
+def _build_heatmap(applied_events: Any, user_tz: Any) -> dict:
+    """Build activity heatmap data from applied events."""
+    today = timezone.localdate()
+    year_ago_raw = today - timedelta(days=364)
+    start = year_ago_raw - timedelta(days=(year_ago_raw.weekday() + 1) % 7)
+    daily_applied = {
+        dt.date(): count
+        for dt, count in applied_events.filter(created_at__date__gte=start)
+        .annotate(day=TruncDay('created_at', tzinfo=user_tz))
+        .values('day')
+        .annotate(count=Count('id'))
+        .values_list('day', 'count')
+    }
+    weeks: list[list[dict | None]] = []
+    months: list[dict] = []
+    current = start
+    prev_month = None
+    while current <= today:
+        week: list[dict | None] = []
+        for dow in range(7):
+            day = current + timedelta(days=dow)
+            if day > today:
+                week.append(None)
+            else:
+                week.append({'date': day.isoformat(), 'count': daily_applied.get(day, 0)})
+                month_label = day.strftime('%b')
+                if month_label != prev_month:
+                    months.append({'week': len(weeks), 'label': month_label})
+                    prev_month = month_label
+        weeks.append(week)
+        current += timedelta(days=7)
+    max_applied = max((cell['count'] for w in weeks for cell in w if cell), default=1)
+    return {'weeks': weeks, 'months': months, 'max': max_applied}
+
+
 @login_required
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
+    """Display the metrics dashboard."""
     now = timezone.now()
     user_tz = timezone.get_current_timezone()
     local_now = timezone.localtime(now, user_tz)
@@ -117,53 +159,7 @@ def index(request):
     )
     offer_rate = round(offer_job_count / len(applied_job_ids) * 100) if applied_job_ids else 0
 
-    # === Activity Heatmap ===
-    today = timezone.localdate()
-    # Go back ~1 year, then extend to the most recent Sunday
-    year_ago_raw = today - timedelta(days=364)
-    # Roll back to the Sunday on or before that date
-    start = year_ago_raw - timedelta(days=(year_ago_raw.weekday() + 1) % 7)
-    daily_applied = {
-        dt.date(): count
-        for dt, count in applied_events.filter(created_at__date__gte=start)
-        .annotate(day=TruncDay('created_at', tzinfo=user_tz))
-        .values('day')
-        .annotate(count=Count('id'))
-        .values_list('day', 'count')
-    }
-    heatmap_weeks = []
-    heatmap_months = []  # (week_index, month_label) for month headers
-    current = start
-    prev_month = None
-    while current <= today:
-        week = []
-        for dow in range(7):
-            day = current + timedelta(days=dow)
-            if day > today:
-                week.append(None)
-            else:
-                week.append(
-                    {
-                        'date': day.isoformat(),
-                        'count': daily_applied.get(day, 0),
-                    }
-                )
-                month_label = day.strftime('%b')
-                if month_label != prev_month:
-                    heatmap_months.append(
-                        {
-                            'week': len(heatmap_weeks),
-                            'label': month_label,
-                        }
-                    )
-                    prev_month = month_label
-        heatmap_weeks.append(week)
-        current += timedelta(days=7)
-
-    max_applied = max(
-        (cell['count'] for week in heatmap_weeks for cell in week if cell),
-        default=1,
-    )
+    heatmap_data = _build_heatmap(applied_events, user_tz)
 
     return render(
         request,
@@ -180,13 +176,7 @@ def index(request):
             'trend_30d': _trend(applied_30d, prev_30d),
             'status_chart_json': json.dumps(status_chart),
             # 1. Application Pipeline
-            'heatmap_json': json.dumps(
-                {
-                    'weeks': heatmap_weeks,
-                    'months': heatmap_months,
-                    'max': max_applied,
-                }
-            ),
+            'heatmap_json': json.dumps(heatmap_data),
             'response_rate': response_rate,
             'active_pipeline': active_pipeline,
             'offer_rate': offer_rate,

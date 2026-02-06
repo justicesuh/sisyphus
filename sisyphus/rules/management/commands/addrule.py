@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand, CommandError
 
 from sisyphus.accounts.models import User, UserProfile
@@ -8,7 +10,8 @@ from sisyphus.rules.models import Rule, RuleCondition
 class Command(BaseCommand):
     help = 'Add a new rule with conditions'
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: Any) -> None:
+        """Add command arguments."""
         parser.add_argument('condition', type=str)
         parser.add_argument(
             '--status',
@@ -19,14 +22,16 @@ class Command(BaseCommand):
         )
         parser.add_argument('--user', type=str, required=True)
 
-    def parse_condition(self, condition):
+    def parse_condition(self, condition: str) -> tuple[str | None, str | None, str | None]:
+        """Parse a condition string into field, match_type, and value."""
         for match_type in RuleCondition.MatchType.values:
             parts = condition.split(f'{match_type} ', 1)
             if len(parts) == 2:
                 return parts[0].strip(), match_type, parts[1].strip()
         return None, None, None
 
-    def handle(self, **options):
+    def handle(self, **options: Any) -> None:
+        """Execute the add rule command."""
         field, match_type, value = self.parse_condition(options['condition'])
         if field not in RuleCondition.Field.values:
             raise CommandError('Invalid field.')
@@ -35,8 +40,8 @@ class Command(BaseCommand):
 
         try:
             user = User.objects.get(email=options['user'])
-        except User.DoesNotExist:
-            raise CommandError('User does not exist.')
+        except User.DoesNotExist as err:
+            raise CommandError('User does not exist.') from err
         profile, _ = UserProfile.objects.get_or_create(user=user)
 
         status = options['status']
@@ -46,7 +51,8 @@ class Command(BaseCommand):
         conditions = [{'field': field, 'match_type': match_type, 'value': value}]
         duplicate = Rule.find_duplicate(profile, Rule.MatchMode.ALL, status, conditions)
         if duplicate:
-            raise CommandError(f"A rule with these settings already exists: '{duplicate.name}'.")
+            msg = f"A rule with these settings already exists: '{duplicate.name}'."
+            raise CommandError(msg)
 
         rule = Rule.objects.create(
             user=profile,

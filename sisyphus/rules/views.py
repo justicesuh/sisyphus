@@ -1,7 +1,16 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+
+if TYPE_CHECKING:
+    import uuid as uuid_mod
+
+    from django.http import HttpRequest, HttpResponse
 
 from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Job
@@ -9,7 +18,8 @@ from sisyphus.rules.models import Rule, RuleCondition
 
 
 @login_required
-def rule_list(request):
+def rule_list(request: HttpRequest) -> HttpResponse:
+    """Display paginated list of rules."""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
 
@@ -25,7 +35,7 @@ def rule_list(request):
     )
 
 
-def _parse_conditions_from_post(request):
+def _parse_conditions_from_post(request: HttpRequest) -> list[dict[str, str]]:
     """Parse conditions from POST data."""
     conditions = []
     condition_count = int(request.POST.get('condition_count', 0))
@@ -46,7 +56,8 @@ def _parse_conditions_from_post(request):
 
 
 @login_required
-def rule_create(request):
+def rule_create(request: HttpRequest) -> HttpResponse:
+    """Create a new rule."""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
@@ -105,7 +116,8 @@ def rule_create(request):
 
 
 @login_required
-def rule_edit(request, uuid):
+def rule_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Edit an existing rule."""
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
 
@@ -164,7 +176,8 @@ def rule_edit(request, uuid):
 
 
 @login_required
-def rule_delete(request, uuid):
+def rule_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Delete a rule."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -182,7 +195,8 @@ def rule_delete(request, uuid):
 
 
 @login_required
-def rule_toggle(request, uuid):
+def rule_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Toggle a rule's active status."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -201,14 +215,15 @@ def rule_toggle(request, uuid):
 
 
 @login_required
-def rule_apply(request, uuid):
+def rule_apply(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Apply a rule to all existing jobs."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
 
-    from sisyphus.rules.tasks import apply_rule_to_existing_jobs
+    from sisyphus.rules.tasks import apply_rule_to_existing_jobs  # noqa: PLC0415
 
     apply_rule_to_existing_jobs.delay(rule.id)
 
@@ -229,13 +244,14 @@ def rule_apply(request, uuid):
 
 
 @login_required
-def rule_apply_all(request):
+def rule_apply_all(request: HttpRequest) -> HttpResponse:
+    """Apply all active rules to existing jobs."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
-    from sisyphus.rules.tasks import apply_all_rules
+    from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
 
     apply_all_rules.delay(profile.id)
 

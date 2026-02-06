@@ -1,4 +1,5 @@
 import zoneinfo
+from typing import Any, ClassVar
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.mail import send_mail
@@ -9,14 +10,17 @@ from django.utils.translation import gettext_lazy as _
 from sisyphus.core.models import UUIDMixin
 
 
-def get_timezone_choices():
+def get_timezone_choices() -> list[tuple[str, str]]:
+    """Return a list of timezone choices."""
     return [(tz, tz) for tz in sorted(zoneinfo.available_timezones())]
 
 
 class UserManager(BaseUserManager):
-    use_in_migrations = True
+    """Manager for custom User model."""
 
-    def _create_user(self, email, password, **extra_fields):
+    use_in_migrations: ClassVar[bool] = True
+
+    def _create_user(self, email: str, password: str, **extra_fields: Any) -> User:
         if not email:
             raise ValueError('The email field must be set.')
         user = self.model(email=self.normalize_email(email), **extra_fields)
@@ -24,12 +28,14 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email: str, password: str, **extra_fields: Any) -> User:
+        """Create and return a regular user."""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, **extra_fields):
+    def create_superuser(self, email: str, password: str, **extra_fields: Any) -> User:
+        """Create and return a superuser."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
@@ -42,6 +48,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
+    """Custom user model using email as the unique identifier."""
+
     email = models.EmailField(
         _('email address'),
         unique=True,
@@ -66,30 +74,37 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
+    USERNAME_FIELD: ClassVar[str] = 'email'
+    REQUIRED_FIELDS: ClassVar[list[str]] = []
 
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
 
-    def clean(self):
+    def clean(self) -> None:
+        """Normalize the email address."""
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
+        """Return the full name of the user."""
         return f'{self.first_name} {self.last_name}'.strip()
 
-    def get_short_name(self):
+    def get_short_name(self) -> str:
+        """Return the first name of the user."""
         return self.first_name
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
+    def email_user(self, subject: str, message: str, from_email: str | None = None, **kwargs: Any) -> None:
+        """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
 class UserProfile(UUIDMixin):
+    """Profile extending the User model with additional preferences."""
+
     user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
     timezone = models.CharField(max_length=50, choices=get_timezone_choices, default='UTC', verbose_name='Timezone')
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the user's email."""
         return self.user.email

@@ -5,6 +5,8 @@ from sisyphus.core.fields import AutoCreatedField, AutoUpdatedField, UUIDField
 
 
 class TimestampedMixin(models.Model):
+    """Abstract mixin providing created_at and updated_at timestamps."""
+
     created_at = AutoCreatedField()
     updated_at = AutoUpdatedField()
 
@@ -13,6 +15,8 @@ class TimestampedMixin(models.Model):
 
 
 class UUIDMixin(models.Model):
+    """Abstract mixin providing a UUID field."""
+
     uuid = UUIDField(_('UUID'))
 
     class Meta:
@@ -20,5 +24,7 @@ class UUIDMixin(models.Model):
 
 
 class UUIDModel(TimestampedMixin, UUIDMixin):
+    """Abstract base model with UUID and timestamp fields."""
+
     class Meta:
         abstract = True

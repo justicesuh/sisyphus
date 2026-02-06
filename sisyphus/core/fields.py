@@ -1,23 +1,38 @@
 import uuid
+from typing import Any
 
 from django.core.exceptions import ValidationError
 from django.db import models
 
 
 class AutoCreatedField(models.DateTimeField):
-    def __init__(self, *args, **kwargs):
+    """DateTimeField that automatically sets to now on creation."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault('auto_now_add', True)
         super().__init__(*args, **kwargs)
 
 
 class AutoUpdatedField(models.DateTimeField):
-    def __init__(self, *args, **kwargs):
+    """DateTimeField that automatically updates to now on save."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         kwargs.setdefault('auto_now', True)
         super().__init__(*args, **kwargs)
 
 
 class UUIDField(models.UUIDField):
-    def __init__(self, verbose_name=None, primary_key=False, version=4, editable=False, *args, **kwargs):
+    """UUIDField with configurable version and sensible defaults."""
+
+    def __init__(
+        self,
+        verbose_name: str | None = None,
+        primary_key: bool = False,
+        version: int = 4,
+        editable: bool = False,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
         if version == 2:
             raise ValidationError('UUID version 2 is not supported.')
 

@@ -1,11 +1,14 @@
+from typing import Any
+
 from celery import shared_task
 
 
 @shared_task
-def apply_all_rules(user_id):
-    from sisyphus.accounts.models import UserProfile
-    from sisyphus.jobs.models import Job
-    from sisyphus.rules.models import Rule, RuleMatch
+def apply_all_rules(user_id: int) -> dict[str, Any]:
+    """Apply all active rules for a user to eligible jobs."""
+    from sisyphus.accounts.models import UserProfile  # noqa: PLC0415
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
+    from sisyphus.rules.models import Rule, RuleMatch  # noqa: PLC0415
 
     try:
         profile = UserProfile.objects.get(id=user_id)
@@ -30,9 +33,10 @@ def apply_all_rules(user_id):
 
 
 @shared_task
-def apply_rule_to_existing_jobs(rule_id):
-    from sisyphus.jobs.models import Job
-    from sisyphus.rules.models import Rule, RuleMatch
+def apply_rule_to_existing_jobs(rule_id: int) -> dict[str, Any]:
+    """Apply a single rule to all eligible jobs."""
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
+    from sisyphus.rules.models import Rule, RuleMatch  # noqa: PLC0415
 
     try:
         rule = Rule.objects.prefetch_related('conditions').get(id=rule_id)

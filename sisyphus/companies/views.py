@@ -1,7 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Count, Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
+
+if TYPE_CHECKING:
+    import uuid as uuid_mod
+
+    from django.http import HttpRequest, HttpResponse
 
 from sisyphus.companies.models import Company, CompanyNote
 
@@ -14,9 +24,8 @@ SORT_OPTIONS = {
 
 
 @login_required
-def company_list(request):
-    from django.db.models import Count, Q
-
+def company_list(request: HttpRequest) -> HttpResponse:
+    """Display paginated list of companies."""
     companies = Company.objects.annotate(job_count=Count('jobs'))
 
     search = request.GET.get('q', '').strip()
@@ -52,7 +61,8 @@ def company_list(request):
 
 
 @login_required
-def company_detail(request, uuid):
+def company_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Display company detail page with jobs and notes."""
     company = get_object_or_404(Company, uuid=uuid)
     jobs = company.jobs.select_related('location').order_by('-date_posted')
     return render(
@@ -67,7 +77,8 @@ def company_detail(request, uuid):
 
 
 @login_required
-def company_add_note(request, uuid):
+def company_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Add a note to a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -78,13 +89,18 @@ def company_add_note(request, uuid):
         company.add_note(text)
 
     if request.htmx:
-        return render(request, 'companies/company_notes_inner.html', {'company': company, 'notes': company.notes.all()})
+        return render(
+            request,
+            'companies/company_notes_inner.html',
+            {'company': company, 'notes': company.notes.all()},
+        )
 
     return redirect('companies:company_detail', uuid=uuid)
 
 
 @login_required
-def company_delete_note(request, uuid, note_id):
+def company_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
+    """Delete a note from a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -93,13 +109,18 @@ def company_delete_note(request, uuid, note_id):
     note.delete()
 
     if request.htmx:
-        return render(request, 'companies/company_notes_inner.html', {'company': company, 'notes': company.notes.all()})
+        return render(
+            request,
+            'companies/company_notes_inner.html',
+            {'company': company, 'notes': company.notes.all()},
+        )
 
     return redirect('companies:company_detail', uuid=uuid)
 
 
 @login_required
-def company_toggle_ban(request, uuid):
+def company_toggle_ban(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Toggle the banned status of a company."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -113,6 +134,10 @@ def company_toggle_ban(request, uuid):
 
     if request.htmx:
         jobs = company.jobs.select_related('location').order_by('-date_posted')
-        return render(request, 'companies/company_ban_status.html', {'company': company, 'jobs': jobs, 'is_htmx': True})
+        return render(
+            request,
+            'companies/company_ban_status.html',
+            {'company': company, 'jobs': jobs, 'is_htmx': True},
+        )
 
     return redirect('companies:company_detail', uuid=uuid)

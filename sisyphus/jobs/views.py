@@ -1,8 +1,18 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Q
 from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+
+if TYPE_CHECKING:
+    import uuid as uuid_mod
+
+    from django.http import HttpRequest, HttpResponse
 
 from sisyphus.jobs.models import Job, JobNote
 
@@ -21,9 +31,8 @@ SORT_OPTIONS = {
 
 
 @login_required
-def job_list(request):
-    from django.db.models import Q
-
+def job_list(request: HttpRequest) -> HttpResponse:
+    """Display paginated list of jobs with filtering and sorting."""
     jobs = Job.objects.select_related('company', 'location')
 
     search = request.GET.get('q', '').strip()
@@ -64,7 +73,8 @@ def job_list(request):
 
 
 @login_required
-def job_detail(request, uuid):
+def job_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Display job detail page."""
     job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
     return render(
         request,
@@ -79,7 +89,8 @@ def job_detail(request, uuid):
 
 
 @login_required
-def job_update_status(request, uuid):
+def job_update_status(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Update a job's status."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -105,7 +116,8 @@ def job_update_status(request, uuid):
 
 
 @login_required
-def job_add_note(request, uuid):
+def job_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Add a note to a job."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -122,7 +134,8 @@ def job_add_note(request, uuid):
 
 
 @login_required
-def job_delete_note(request, uuid, note_id):
+def job_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> HttpResponse:
+    """Delete a note from a job."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -137,7 +150,8 @@ def job_delete_note(request, uuid, note_id):
 
 
 @login_required
-def job_review(request):
+def job_review(request: HttpRequest) -> HttpResponse:
+    """Display the job review page for triaging jobs."""
     filter_status = request.GET.get('status', 'new')
     if filter_status not in ['new', 'saved']:
         filter_status = 'new'
@@ -165,7 +179,8 @@ def job_review(request):
 
 
 @login_required
-def job_review_action(request, uuid):
+def job_review_action(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Process a review action on a job."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
@@ -176,4 +191,4 @@ def job_review_action(request, uuid):
         job.update_status(new_status)
 
     filter_status = request.GET.get('filter', 'new')
-    return redirect(f"{reverse('jobs:job_review')}?status={filter_status}")
+    return redirect(f'{reverse("jobs:job_review")}?status={filter_status}')

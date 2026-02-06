@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import re
+from typing import ClassVar
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +12,8 @@ from sisyphus.jobs.models import Job
 
 
 class Rule(UUIDModel):
+    """A user-defined rule for automatically categorizing jobs."""
+
     class MatchMode(models.TextChoices):
         ALL = 'all', _('All conditions must match')
         ANY = 'any', _('Any condition matches')
@@ -21,12 +26,14 @@ class Rule(UUIDModel):
     priority = models.PositiveIntegerField(default=0, help_text=_('Higher priority rules are evaluated first'))
 
     class Meta:
-        ordering = ['-priority', 'name']
+        ordering = ['-priority', 'name']  # noqa: RUF012
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return the rule name."""
         return self.name
 
-    def matches(self, job):
+    def matches(self, job: Job) -> bool:
+        """Check if this rule matches the given job."""
         conditions = self.conditions.all()
         if not conditions:
             return False
@@ -36,7 +43,14 @@ class Rule(UUIDModel):
         return any(condition.matches(job) for condition in conditions)
 
     @classmethod
-    def find_duplicate(cls, user, match_mode, target_status, conditions, exclude_rule=None):
+    def find_duplicate(
+        cls,
+        user: UserProfile,
+        match_mode: str,
+        target_status: str,
+        conditions: list[dict[str, str]],
+        exclude_rule: Rule | None = None,
+    ) -> Rule | None:
         """Find an existing rule with the same settings and conditions.
 
         Args:
@@ -71,6 +85,8 @@ class Rule(UUIDModel):
 
 
 class RuleCondition(UUIDModel):
+    """A single condition within a rule."""
+
     class Field(models.TextChoices):
         TITLE = 'title', _('Title')
         DESCRIPTION = 'description', _('Description')
@@ -90,10 +106,11 @@ class RuleCondition(UUIDModel):
     value = models.CharField(max_length=500)
     case_sensitive = models.BooleanField(default=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a human-readable description of the condition."""
         return f'{self.get_field_display()} {self.get_match_type_display()} "{self.value}"'
 
-    def _get_field_value(self, job):
+    def _get_field_value(self, job: Job) -> str:
         if self.field == self.Field.TITLE:
             return job.title or ''
         if self.field == self.Field.DESCRIPTION:
@@ -106,7 +123,8 @@ class RuleCondition(UUIDModel):
             return job.url or ''
         return ''
 
-    def matches(self, job):
+    def matches(self, job: Job) -> bool:
+        """Check if this condition matches the given job."""
         field_value = self._get_field_value(job)
         pattern = self.value
 
@@ -131,13 +149,15 @@ class RuleCondition(UUIDModel):
 
 
 class RuleMatch(UUIDModel):
+    """A record of a rule matching a job."""
+
     rule = models.ForeignKey(Rule, related_name='match_history', on_delete=models.CASCADE)
     job = models.ForeignKey(Job, related_name='rule_matches', on_delete=models.CASCADE)
     old_status = models.CharField(max_length=12, choices=Job.Status.choices)
     new_status = models.CharField(max_length=12, choices=Job.Status.choices)
 
-    class Meta:
-        ordering = ['-created_at']
+    ordering: ClassVar[list[str]] = ['-created_at']
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a summary of the rule match."""
         return f'{self.rule.name} matched {self.job.title}'
