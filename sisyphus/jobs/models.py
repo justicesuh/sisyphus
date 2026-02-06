@@ -57,14 +57,14 @@ class Job(UUIDModel):
     date_found = models.DateTimeField(null=True, blank=True)
     populated = models.BooleanField(default=False)
 
-    flexibility = models.CharField(max_length=6, choices=Flexibility.choices, default=None, null=True, blank=True)
+    flexibility = models.CharField(max_length=6, choices=Flexibility.choices, default='', blank=True)
 
     raw_html = models.TextField(default='', blank=True)
     description = models.TextField(default='', blank=True)
     easy_apply = models.BooleanField(default=False)
 
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.NEW)
-    pre_ban_status = models.CharField(max_length=12, choices=Status.choices, null=True, blank=True)
+    pre_ban_status = models.CharField(max_length=12, choices=Status.choices, default='', blank=True)
     date_status_changed = models.DateTimeField(null=True, blank=True)
 
     score = models.IntegerField(null=True, blank=True)
