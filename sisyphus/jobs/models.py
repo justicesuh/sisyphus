@@ -76,6 +76,7 @@ class Job(UUIDModel):
 
         from celery.result import AsyncResult
         from django.db import transaction
+
         from sisyphus.jobs.tasks import calculate_job_score
 
         with transaction.atomic():

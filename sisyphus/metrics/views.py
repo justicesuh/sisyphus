@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.utils import timezone
 
 from sisyphus.jobs.models import Job, JobEvent
+
 
 def _trend(current, previous):
     """Return dict with absolute percentage change and direction."""
@@ -55,27 +56,19 @@ def index(request):
     today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # --- Existing: Status counts & applied cards ---
-    status_counts = dict(
-        Job.objects.values_list('status').annotate(count=Count('id')).order_by()
-    )
+    status_counts = dict(Job.objects.values_list('status').annotate(count=Count('id')).order_by())
 
     to_review = Job.objects.filter(status=Job.Status.NEW, populated=True).count()
 
     applied_events = JobEvent.objects.filter(new_status=Job.Status.APPLIED)
     applied_today = applied_events.filter(created_at__gte=today_start).count()
-    applied_7d = applied_events.filter(
-        created_at__gte=now - timedelta(days=7)
-    ).count()
-    applied_30d = applied_events.filter(
-        created_at__gte=now - timedelta(days=30)
-    ).count()
+    applied_7d = applied_events.filter(created_at__gte=now - timedelta(days=7)).count()
+    applied_30d = applied_events.filter(created_at__gte=now - timedelta(days=30)).count()
     applied_total = applied_events.count()
 
     # Previous period counts for trend indicators
     yesterday_start = today_start - timedelta(days=1)
-    prev_today = applied_events.filter(
-        created_at__gte=yesterday_start, created_at__lt=today_start
-    ).count()
+    prev_today = applied_events.filter(created_at__gte=yesterday_start, created_at__lt=today_start).count()
     prev_7d = applied_events.filter(
         created_at__gte=now - timedelta(days=14),
         created_at__lt=now - timedelta(days=7),
@@ -100,9 +93,7 @@ def index(request):
             status_chart['colors'].append(STATUS_COLORS.get(value, '#6c757d'))
 
     # --- Reusable: applied job IDs ---
-    applied_job_ids = list(
-        applied_events.values_list('job_id', flat=True).distinct()
-    )
+    applied_job_ids = list(applied_events.values_list('job_id', flat=True).distinct())
 
     # === 1. Application Pipeline ===
     responded_count = (
@@ -111,15 +102,9 @@ def index(request):
         .distinct()
         .count()
     )
-    response_rate = (
-        round(responded_count / len(applied_job_ids) * 100)
-        if applied_job_ids
-        else 0
-    )
+    response_rate = round(responded_count / len(applied_job_ids) * 100) if applied_job_ids else 0
 
-    active_pipeline = Job.objects.filter(
-        status__in=[Job.Status.INTERVIEWING, Job.Status.OFFER]
-    ).count()
+    active_pipeline = Job.objects.filter(status__in=[Job.Status.INTERVIEWING, Job.Status.OFFER]).count()
 
     offer_job_count = (
         JobEvent.objects.filter(
@@ -130,11 +115,7 @@ def index(request):
         .distinct()
         .count()
     )
-    offer_rate = (
-        round(offer_job_count / len(applied_job_ids) * 100)
-        if applied_job_ids
-        else 0
-    )
+    offer_rate = round(offer_job_count / len(applied_job_ids) * 100) if applied_job_ids else 0
 
     # === Activity Heatmap ===
     today = timezone.localdate()
@@ -161,16 +142,20 @@ def index(request):
             if day > today:
                 week.append(None)
             else:
-                week.append({
-                    'date': day.isoformat(),
-                    'count': daily_applied.get(day, 0),
-                })
+                week.append(
+                    {
+                        'date': day.isoformat(),
+                        'count': daily_applied.get(day, 0),
+                    }
+                )
                 month_label = day.strftime('%b')
                 if month_label != prev_month:
-                    heatmap_months.append({
-                        'week': len(heatmap_weeks),
-                        'label': month_label,
-                    })
+                    heatmap_months.append(
+                        {
+                            'week': len(heatmap_weeks),
+                            'label': month_label,
+                        }
+                    )
                     prev_month = month_label
         heatmap_weeks.append(week)
         current += timedelta(days=7)
@@ -195,11 +180,13 @@ def index(request):
             'trend_30d': _trend(applied_30d, prev_30d),
             'status_chart_json': json.dumps(status_chart),
             # 1. Application Pipeline
-            'heatmap_json': json.dumps({
-                'weeks': heatmap_weeks,
-                'months': heatmap_months,
-                'max': max_applied,
-            }),
+            'heatmap_json': json.dumps(
+                {
+                    'weeks': heatmap_weeks,
+                    'months': heatmap_months,
+                    'max': max_applied,
+                }
+            ),
             'response_rate': response_rate,
             'active_pipeline': active_pipeline,
             'offer_rate': offer_rate,

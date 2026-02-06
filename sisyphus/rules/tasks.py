@@ -22,12 +22,7 @@ def apply_all_rules(user_id):
                 old_status = job.status
                 job.update_status(rule.target_status)
 
-                RuleMatch.objects.create(
-                    rule=rule,
-                    job=job,
-                    old_status=old_status,
-                    new_status=rule.target_status
-                )
+                RuleMatch.objects.create(rule=rule, job=job, old_status=old_status, new_status=rule.target_status)
                 matched_count += 1
                 break  # Only apply first matching rule per job
 
@@ -55,12 +50,7 @@ def apply_rule_to_existing_jobs(rule_id):
             old_status = job.status
             job.update_status(rule.target_status)
 
-            RuleMatch.objects.create(
-                rule=rule,
-                job=job,
-                old_status=old_status,
-                new_status=rule.target_status
-            )
+            RuleMatch.objects.create(rule=rule, job=job, old_status=old_status, new_status=rule.target_status)
             matched_count += 1
 
     return {'matched_count': matched_count}

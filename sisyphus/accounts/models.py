@@ -23,12 +23,12 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
-    
+
     def create_user(self, email, password, **extra_fields):
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
-    
+
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -37,7 +37,7 @@ class UserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
-        
+
         return self._create_user(email, password, **extra_fields)
 
 
@@ -60,10 +60,7 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
     is_active = models.BooleanField(
         _('active'),
         default=True,
-        help_text=_(
-            'Designates whether this user should be active. '
-            'Unselect this instead of deleting accounts.'
-        ),
+        help_text=_('Designates whether this user should be active. Unselect this instead of deleting accounts.'),
     )
     date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
 
@@ -82,10 +79,10 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDMixin):
 
     def get_full_name(self):
         return f'{self.first_name} {self.last_name}'.strip()
-    
+
     def get_short_name(self):
         return self.first_name
-    
+
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 

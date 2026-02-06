@@ -6,7 +6,6 @@ from django.urls import reverse
 
 from sisyphus.jobs.models import Job, JobNote
 
-
 SORT_OPTIONS = {
     'title': 'title',
     '-title': '-title',
@@ -49,26 +48,34 @@ def job_list(request):
     paginator = Paginator(jobs, 25)
     page = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'jobs/job_list.html', {
-        'page': page,
-        'status_choices': Job.Status.choices,
-        'flexibility_choices': Job.Flexibility.choices,
-        'current_search': search,
-        'current_status': status,
-        'current_flexibility': flexibility,
-        'current_sort': sort,
-    })
+    return render(
+        request,
+        'jobs/job_list.html',
+        {
+            'page': page,
+            'status_choices': Job.Status.choices,
+            'flexibility_choices': Job.Flexibility.choices,
+            'current_search': search,
+            'current_status': status,
+            'current_flexibility': flexibility,
+            'current_sort': sort,
+        },
+    )
 
 
 @login_required
 def job_detail(request, uuid):
     job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
-    return render(request, 'jobs/job_detail.html', {
-        'job': job,
-        'notes': job.notes.all(),
-        'events': job.events.order_by('-created_at'),
-        'status_choices': Job.Status.choices,
-    })
+    return render(
+        request,
+        'jobs/job_detail.html',
+        {
+            'job': job,
+            'notes': job.notes.all(),
+            'events': job.events.order_by('-created_at'),
+            'status_choices': Job.Status.choices,
+        },
+    )
 
 
 @login_required
@@ -84,11 +91,15 @@ def job_update_status(request, uuid):
         job.refresh_from_db()
 
     if request.htmx:
-        return render(request, 'jobs/job_status_with_history.html', {
-            'job': job,
-            'events': job.events.order_by('-created_at'),
-            'status_choices': Job.Status.choices,
-        })
+        return render(
+            request,
+            'jobs/job_status_with_history.html',
+            {
+                'job': job,
+                'events': job.events.order_by('-created_at'),
+                'status_choices': Job.Status.choices,
+            },
+        )
 
     return redirect('jobs:job_detail', uuid=uuid)
 
@@ -131,17 +142,26 @@ def job_review(request):
     if filter_status not in ['new', 'saved']:
         filter_status = 'new'
 
-    job = Job.objects.filter(status=filter_status, populated=True).select_related('company', 'location').order_by('-date_posted').first()
+    job = (
+        Job.objects.filter(status=filter_status, populated=True)
+        .select_related('company', 'location')
+        .order_by('-date_posted')
+        .first()
+    )
 
     new_count = Job.objects.filter(status=Job.Status.NEW, populated=True).count()
     saved_count = Job.objects.filter(status=Job.Status.SAVED, populated=True).count()
 
-    return render(request, 'jobs/job_review.html', {
-        'job': job,
-        'new_count': new_count,
-        'saved_count': saved_count,
-        'current_filter': filter_status,
-    })
+    return render(
+        request,
+        'jobs/job_review.html',
+        {
+            'job': job,
+            'new_count': new_count,
+            'saved_count': saved_count,
+            'current_filter': filter_status,
+        },
+    )
 
 
 @login_required

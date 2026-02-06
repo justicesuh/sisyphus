@@ -46,7 +46,7 @@ class Command(BaseCommand):
         conditions = [{'field': field, 'match_type': match_type, 'value': value}]
         duplicate = Rule.find_duplicate(profile, Rule.MatchMode.ALL, status, conditions)
         if duplicate:
-            raise CommandError(f'A rule with these settings already exists: \'{duplicate.name}\'.')
+            raise CommandError(f"A rule with these settings already exists: '{duplicate.name}'.")
 
         rule = Rule.objects.create(
             user=profile,
@@ -62,4 +62,6 @@ class Command(BaseCommand):
             value=value,
         )
 
-        self.stdout.write(self.style.SUCCESS(f'Created rule \'{value}\' with target status {rule.get_target_status_display()}'))
+        self.stdout.write(
+            self.style.SUCCESS(f"Created rule '{value}' with target status {rule.get_target_status_display()}")
+        )

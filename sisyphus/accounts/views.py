@@ -27,11 +27,15 @@ def profile(request):
     resume = getattr(user_profile, 'resume', None)
     timezone_choices = get_timezone_choices()
 
-    return render(request, 'profile.html', {
-        'profile': user_profile,
-        'resume': resume,
-        'timezone_choices': timezone_choices,
-    })
+    return render(
+        request,
+        'profile.html',
+        {
+            'profile': user_profile,
+            'resume': resume,
+            'timezone_choices': timezone_choices,
+        },
+    )
 
 
 @login_required

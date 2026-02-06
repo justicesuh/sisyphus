@@ -20,10 +20,10 @@ class UUIDField(models.UUIDField):
     def __init__(self, verbose_name=None, primary_key=False, version=4, editable=False, *args, **kwargs):
         if version == 2:
             raise ValidationError('UUID version 2 is not supported.')
-        
+
         if version < 1 or version > 7:
             raise ValidationError('UUID version is not valid.')
-        
+
         default = getattr(uuid, f'uuid{version}')
 
         kwargs.setdefault('verbose_name', verbose_name)

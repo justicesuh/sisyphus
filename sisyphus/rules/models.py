@@ -33,13 +33,11 @@ class Rule(UUIDModel):
 
         if self.match_mode == self.MatchMode.ALL:
             return all(condition.matches(job) for condition in conditions)
-        else:
-            return any(condition.matches(job) for condition in conditions)
+        return any(condition.matches(job) for condition in conditions)
 
     @classmethod
     def find_duplicate(cls, user, match_mode, target_status, conditions, exclude_rule=None):
-        """
-        Find an existing rule with the same settings and conditions.
+        """Find an existing rule with the same settings and conditions.
 
         Args:
             user: UserProfile instance
@@ -50,6 +48,7 @@ class Rule(UUIDModel):
 
         Returns:
             Rule instance if duplicate found, None otherwise
+
         """
         queryset = cls.objects.filter(
             user=user,
@@ -61,16 +60,10 @@ class Rule(UUIDModel):
             queryset = queryset.exclude(pk=exclude_rule.pk)
 
         # Normalize conditions for comparison
-        condition_set = frozenset(
-            (c['field'], c['match_type'], c['value'])
-            for c in conditions
-        )
+        condition_set = frozenset((c['field'], c['match_type'], c['value']) for c in conditions)
 
         for rule in queryset.prefetch_related('conditions'):
-            rule_conditions = frozenset(
-                (c.field, c.match_type, c.value)
-                for c in rule.conditions.all()
-            )
+            rule_conditions = frozenset((c.field, c.match_type, c.value) for c in rule.conditions.all())
             if rule_conditions == condition_set:
                 return rule
 
@@ -103,13 +96,13 @@ class RuleCondition(UUIDModel):
     def _get_field_value(self, job):
         if self.field == self.Field.TITLE:
             return job.title or ''
-        elif self.field == self.Field.DESCRIPTION:
+        if self.field == self.Field.DESCRIPTION:
             return job.description or ''
-        elif self.field == self.Field.COMPANY:
+        if self.field == self.Field.COMPANY:
             return job.company.name if job.company else ''
-        elif self.field == self.Field.LOCATION:
+        if self.field == self.Field.LOCATION:
             return job.location.name if job.location else ''
-        elif self.field == self.Field.URL:
+        if self.field == self.Field.URL:
             return job.url or ''
         return ''
 
@@ -124,9 +117,9 @@ class RuleCondition(UUIDModel):
 
         if self.match_type == self.MatchType.CONTAINS:
             return pattern in field_value
-        elif self.match_type == self.MatchType.EXACT:
+        if self.match_type == self.MatchType.EXACT:
             return pattern == field_value
-        elif self.match_type == self.MatchType.REGEX:
+        if self.match_type == self.MatchType.REGEX:
             try:
                 return bool(re.search(pattern, field_value, re.IGNORECASE))
             except re.error:

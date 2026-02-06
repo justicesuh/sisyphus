@@ -16,9 +16,13 @@ def rule_list(request):
     paginator = Paginator(rules, 25)
     page = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'rules/rule_list.html', {
-        'page': page,
-    })
+    return render(
+        request,
+        'rules/rule_list.html',
+        {
+            'page': page,
+        },
+    )
 
 
 def _parse_conditions_from_post(request):
@@ -31,11 +35,13 @@ def _parse_conditions_from_post(request):
         value = request.POST.get(f'condition_{i}_value', '').strip()
 
         if field and match_type and value:
-            conditions.append({
-                'field': field,
-                'match_type': match_type,
-                'value': value,
-            })
+            conditions.append(
+                {
+                    'field': field,
+                    'match_type': match_type,
+                    'value': value,
+                }
+            )
     return conditions
 
 
@@ -54,22 +60,24 @@ def rule_create(request):
         # Check for duplicate rule
         duplicate = Rule.find_duplicate(profile, match_mode, target_status, conditions)
         if duplicate:
-            return render(request, 'rules/rule_form.html', {
-                'error': f'A rule with these settings already exists: "{duplicate.name}"',
-                'match_mode_choices': Rule.MatchMode.choices,
-                'status_choices': Job.Status.choices,
-                'field_choices': RuleCondition.Field.choices,
-                'match_type_choices': RuleCondition.MatchType.choices,
-                'form_data': {
-                    'name': name,
-                    'match_mode': match_mode,
-                    'target_status': target_status,
-                    'priority': priority,
+            return render(
+                request,
+                'rules/rule_form.html',
+                {
+                    'error': f'A rule with these settings already exists: "{duplicate.name}"',
+                    'match_mode_choices': Rule.MatchMode.choices,
+                    'status_choices': Job.Status.choices,
+                    'field_choices': RuleCondition.Field.choices,
+                    'match_type_choices': RuleCondition.MatchType.choices,
+                    'form_data': {
+                        'name': name,
+                        'match_mode': match_mode,
+                        'target_status': target_status,
+                        'priority': priority,
+                    },
+                    'conditions': [type('Condition', (), c)() for c in conditions],
                 },
-                'conditions': [
-                    type('Condition', (), c)() for c in conditions
-                ],
-            })
+            )
 
         rule = Rule.objects.create(
             user=profile,
@@ -84,12 +92,16 @@ def rule_create(request):
 
         return redirect('rules:rule_list')
 
-    return render(request, 'rules/rule_form.html', {
-        'match_mode_choices': Rule.MatchMode.choices,
-        'status_choices': Job.Status.choices,
-        'field_choices': RuleCondition.Field.choices,
-        'match_type_choices': RuleCondition.MatchType.choices,
-    })
+    return render(
+        request,
+        'rules/rule_form.html',
+        {
+            'match_mode_choices': Rule.MatchMode.choices,
+            'status_choices': Job.Status.choices,
+            'field_choices': RuleCondition.Field.choices,
+            'match_type_choices': RuleCondition.MatchType.choices,
+        },
+    )
 
 
 @login_required
@@ -108,17 +120,19 @@ def rule_edit(request, uuid):
         # Check for duplicate rule (excluding current rule)
         duplicate = Rule.find_duplicate(profile, match_mode, target_status, conditions, exclude_rule=rule)
         if duplicate:
-            return render(request, 'rules/rule_form.html', {
-                'rule': rule,
-                'error': f'A rule with these settings already exists: "{duplicate.name}"',
-                'match_mode_choices': Rule.MatchMode.choices,
-                'status_choices': Job.Status.choices,
-                'field_choices': RuleCondition.Field.choices,
-                'match_type_choices': RuleCondition.MatchType.choices,
-                'conditions': [
-                    type('Condition', (), c)() for c in conditions
-                ],
-            })
+            return render(
+                request,
+                'rules/rule_form.html',
+                {
+                    'rule': rule,
+                    'error': f'A rule with these settings already exists: "{duplicate.name}"',
+                    'match_mode_choices': Rule.MatchMode.choices,
+                    'status_choices': Job.Status.choices,
+                    'field_choices': RuleCondition.Field.choices,
+                    'match_type_choices': RuleCondition.MatchType.choices,
+                    'conditions': [type('Condition', (), c)() for c in conditions],
+                },
+            )
 
         rule.name = name
         rule.match_mode = match_mode
@@ -135,14 +149,18 @@ def rule_edit(request, uuid):
 
     conditions = list(rule.conditions.all())
 
-    return render(request, 'rules/rule_form.html', {
-        'rule': rule,
-        'conditions': conditions,
-        'match_mode_choices': Rule.MatchMode.choices,
-        'status_choices': Job.Status.choices,
-        'field_choices': RuleCondition.Field.choices,
-        'match_type_choices': RuleCondition.MatchType.choices,
-    })
+    return render(
+        request,
+        'rules/rule_form.html',
+        {
+            'rule': rule,
+            'conditions': conditions,
+            'match_mode_choices': Rule.MatchMode.choices,
+            'status_choices': Job.Status.choices,
+            'field_choices': RuleCondition.Field.choices,
+            'match_type_choices': RuleCondition.MatchType.choices,
+        },
+    )
 
 
 @login_required
@@ -191,16 +209,21 @@ def rule_apply(request, uuid):
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
 
     from sisyphus.rules.tasks import apply_rule_to_existing_jobs
+
     apply_rule_to_existing_jobs.delay(rule.id)
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
-        return render(request, 'rules/rule_list_inner.html', {
-            'page': page,
-            'message': f'Rule "{rule.name}" is being applied to existing jobs.',
-        })
+        return render(
+            request,
+            'rules/rule_list_inner.html',
+            {
+                'page': page,
+                'message': f'Rule "{rule.name}" is being applied to existing jobs.',
+            },
+        )
 
     return redirect('rules:rule_list')
 
@@ -213,15 +236,20 @@ def rule_apply_all(request):
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     from sisyphus.rules.tasks import apply_all_rules
+
     apply_all_rules.delay(profile.id)
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
-        return render(request, 'rules/rule_list_inner.html', {
-            'page': page,
-            'message': 'All rules are being applied to existing jobs.',
-        })
+        return render(
+            request,
+            'rules/rule_list_inner.html',
+            {
+                'page': page,
+                'message': 'All rules are being applied to existing jobs.',
+            },
+        )
 
     return redirect('rules:rule_list')

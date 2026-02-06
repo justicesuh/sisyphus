@@ -26,6 +26,7 @@ class Company(UUIDModel):
 
     def ban(self, reason: str = '') -> None:
         from sisyphus.jobs.models import Job
+
         self.is_banned = True
         self.banned_at = timezone.now()
         self.ban_reason = reason
@@ -35,6 +36,7 @@ class Company(UUIDModel):
 
     def unban(self) -> None:
         from sisyphus.jobs.models import Job
+
         self.is_banned = False
         self.banned_at = None
         self.ban_reason = ''
