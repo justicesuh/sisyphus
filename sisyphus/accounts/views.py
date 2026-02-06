@@ -13,8 +13,8 @@ def profile(request: HttpRequest) -> HttpResponse:
 
     if request.method == 'POST':
         user = request.user
-        user.first_name = request.POST.get('first_name', '').strip()
-        user.last_name = request.POST.get('last_name', '').strip()
+        user.first_name = request.POST.get('first_name', '').strip()  # type: ignore[union-attr]
+        user.last_name = request.POST.get('last_name', '').strip()  # type: ignore[union-attr]
         user.save()
 
         timezone = request.POST.get('timezone', 'UTC')
@@ -52,7 +52,7 @@ def resume_upload(request: HttpRequest) -> HttpResponse:
 
     if file:
         if not name:
-            name = file.name
+            name = file.name or ''
 
         # Delete existing resume if one exists
         if hasattr(user_profile, 'resume'):
@@ -62,9 +62,9 @@ def resume_upload(request: HttpRequest) -> HttpResponse:
         resume = Resume.objects.create(user=user_profile, name=name, file=file)
         resume.extract_text()
 
-    if request.htmx:
-        resume = getattr(user_profile, 'resume', None)
-        return render(request, 'profile_resumes.html', {'resume': resume})
+    if request.htmx:  # type: ignore[attr-defined]
+        current_resume: Resume | None = getattr(user_profile, 'resume', None)
+        return render(request, 'profile_resumes.html', {'resume': current_resume})
 
     return redirect('accounts:profile')
 
@@ -81,7 +81,7 @@ def resume_delete(request: HttpRequest) -> HttpResponse:
         user_profile.resume.file.delete()
         user_profile.resume.delete()
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(request, 'profile_resumes.html', {'resume': None})
 
     return redirect('accounts:profile')

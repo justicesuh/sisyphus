@@ -101,7 +101,7 @@ def job_update_status(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse
         job.update_status(new_status)
         job.refresh_from_db()
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(
             request,
             'jobs/job_status_with_history.html',
@@ -127,7 +127,7 @@ def job_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if text:
         job.add_note(text)
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('jobs:job_detail', uuid=uuid)
@@ -143,7 +143,7 @@ def job_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int) -> 
     job = note.job
     note.delete()
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(request, 'jobs/job_notes_inner.html', {'job': job, 'notes': job.notes.all()})
 
     return redirect('jobs:job_detail', uuid=uuid)

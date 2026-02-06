@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 from functools import lru_cache
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from openai import OpenAI as OpenAIClient
+
+if TYPE_CHECKING:
+    from openai.types.chat import ChatCompletionMessageParam
 
 
 class OpenAI:
@@ -13,7 +18,7 @@ class OpenAI:
 
     def chat(
         self,
-        messages: list[dict[str, str]],
+        messages: list[ChatCompletionMessageParam],
         model: str = 'gpt-4o-mini',
         temperature: float = 0.3,
         **kwargs: Any,
@@ -25,11 +30,11 @@ class OpenAI:
             temperature=temperature,
             **kwargs,
         )
-        return response.choices[0].message.content
+        return response.choices[0].message.content  # type: ignore[no-any-return]
 
     def complete(self, prompt: str, system: str | None = None, **kwargs: Any) -> str | None:
         """Send a single prompt completion request."""
-        messages = []
+        messages: list[ChatCompletionMessageParam] = []
         if system:
             messages.append({'role': 'system', 'content': system})
         messages.append({'role': 'user', 'content': prompt})

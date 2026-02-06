@@ -88,7 +88,7 @@ def company_add_note(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if text:
         company.add_note(text)
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(
             request,
             'companies/company_notes_inner.html',
@@ -108,7 +108,7 @@ def company_delete_note(request: HttpRequest, uuid: uuid_mod.UUID, note_id: int)
     company = note.company
     note.delete()
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         return render(
             request,
             'companies/company_notes_inner.html',
@@ -132,7 +132,7 @@ def company_toggle_ban(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpRespons
         reason = request.POST.get('reason', '').strip()
         company.ban(reason)
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         jobs = company.jobs.select_related('location').order_by('-date_posted')
         return render(
             request,

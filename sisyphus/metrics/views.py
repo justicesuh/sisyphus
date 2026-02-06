@@ -54,7 +54,7 @@ RESPONSE_STATUSES = {
 }
 
 
-def _build_heatmap(applied_events: Any, user_tz: Any) -> dict:
+def _build_heatmap(applied_events: Any, user_tz: Any) -> dict[str, Any]:
     """Build activity heatmap data from applied events."""
     today = timezone.localdate()
     year_ago_raw = today - timedelta(days=364)
@@ -67,12 +67,12 @@ def _build_heatmap(applied_events: Any, user_tz: Any) -> dict:
         .annotate(count=Count('id'))
         .values_list('day', 'count')
     }
-    weeks: list[list[dict | None]] = []
-    months: list[dict] = []
+    weeks: list[list[dict[str, Any] | None]] = []
+    months: list[dict[str, Any]] = []
     current = start
     prev_month = None
     while current <= today:
-        week: list[dict | None] = []
+        week: list[dict[str, Any] | None] = []
         for dow in range(7):
             day = current + timedelta(days=dow)
             if day > today:
@@ -120,7 +120,7 @@ def index(request: HttpRequest) -> HttpResponse:
         created_at__lt=now - timedelta(days=30),
     ).count()
 
-    status_chart = {
+    status_chart: dict[str, list[Any]] = {
         'labels': [],
         'values': [],
         'counts': [],

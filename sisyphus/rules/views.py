@@ -159,14 +159,14 @@ def rule_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
         return redirect('rules:rule_list')
 
-    conditions = list(rule.conditions.all())
+    current_conditions = list(rule.conditions.all())
 
     return render(
         request,
         'rules/rule_form.html',
         {
             'rule': rule,
-            'conditions': conditions,
+            'conditions': current_conditions,
             'match_mode_choices': Rule.MatchMode.choices,
             'status_choices': Job.Status.choices,
             'field_choices': RuleCondition.Field.choices,
@@ -185,7 +185,7 @@ def rule_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     rule = get_object_or_404(Rule, uuid=uuid, user=profile)
     rule.delete()
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -205,7 +205,7 @@ def rule_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     rule.is_active = not rule.is_active
     rule.save(update_fields=['is_active'])
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -227,7 +227,7 @@ def rule_apply(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
     apply_rule_to_existing_jobs.delay(rule.id)
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)
@@ -255,7 +255,7 @@ def rule_apply_all(request: HttpRequest) -> HttpResponse:
 
     apply_all_rules.delay(profile.id)
 
-    if request.htmx:
+    if request.htmx:  # type: ignore[attr-defined]
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
         paginator = Paginator(rules, 25)
         page = paginator.get_page(1)

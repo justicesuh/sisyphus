@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.core.exceptions import ValidationError
 from django.db import models
 
+if TYPE_CHECKING:
+    from django.utils.functional import _StrOrPromise
 
-class AutoCreatedField(models.DateTimeField):
+
+class AutoCreatedField(models.DateTimeField):  # type: ignore[type-arg]
     """DateTimeField that automatically sets to now on creation."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -13,7 +18,7 @@ class AutoCreatedField(models.DateTimeField):
         super().__init__(*args, **kwargs)
 
 
-class AutoUpdatedField(models.DateTimeField):
+class AutoUpdatedField(models.DateTimeField):  # type: ignore[type-arg]
     """DateTimeField that automatically updates to now on save."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -21,12 +26,12 @@ class AutoUpdatedField(models.DateTimeField):
         super().__init__(*args, **kwargs)
 
 
-class UUIDField(models.UUIDField):
+class UUIDField(models.UUIDField):  # type: ignore[type-arg]
     """UUIDField with configurable version and sensible defaults."""
 
     def __init__(
         self,
-        verbose_name: str | None = None,
+        verbose_name: _StrOrPromise | None = None,
         primary_key: bool = False,
         version: int = 4,
         editable: bool = False,

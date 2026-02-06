@@ -33,10 +33,12 @@ class Command(BaseCommand):
     def handle(self, **options: Any) -> None:
         """Execute the add rule command."""
         field, match_type, value = self.parse_condition(options['condition'])
-        if field not in RuleCondition.Field.values:
+        if not field or field not in RuleCondition.Field.values:
             raise CommandError('Invalid field.')
-        if match_type is None:
+        if not match_type:
             raise CommandError('Invalid match type.')
+        if not value:
+            raise CommandError('Invalid value.')
 
         try:
             user = User.objects.get(email=options['user'])

@@ -1,34 +1,32 @@
-from typing import ClassVar
-
 from django.contrib import admin
 
 from sisyphus.rules.models import Rule, RuleCondition, RuleMatch
 
 
-class RuleConditionInline(admin.TabularInline):
+class RuleConditionInline(admin.TabularInline):  # type: ignore[type-arg]
     model = RuleCondition
     extra = 1
 
 
 @admin.register(Rule)
-class RuleAdmin(admin.ModelAdmin):
-    list_display: ClassVar[list[str]] = ['name', 'user', 'is_active', 'match_mode', 'target_status', 'priority']
-    list_filter: ClassVar[list[str]] = ['is_active', 'match_mode', 'target_status']
-    search_fields: ClassVar[list[str]] = ['name']
-    ordering: ClassVar[list[str]] = ['-priority', 'name']
-    inlines: ClassVar[list[type]] = [RuleConditionInline]
+class RuleAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ['name', 'user', 'is_active', 'match_mode', 'target_status', 'priority']  # noqa: RUF012
+    list_filter = ['is_active', 'match_mode', 'target_status']  # noqa: RUF012
+    search_fields = ['name']  # noqa: RUF012
+    ordering = ['-priority', 'name']  # noqa: RUF012
+    inlines = [RuleConditionInline]  # noqa: RUF012
 
 
 @admin.register(RuleCondition)
-class RuleConditionAdmin(admin.ModelAdmin):
-    list_display: ClassVar[list[str]] = ['rule', 'field', 'match_type', 'value', 'case_sensitive']
-    list_filter: ClassVar[list[str]] = ['field', 'match_type', 'case_sensitive']
-    search_fields: ClassVar[list[str]] = ['value', 'rule__name']
+class RuleConditionAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ['rule', 'field', 'match_type', 'value', 'case_sensitive']  # noqa: RUF012
+    list_filter = ['field', 'match_type', 'case_sensitive']  # noqa: RUF012
+    search_fields = ['value', 'rule__name']  # noqa: RUF012
 
 
 @admin.register(RuleMatch)
-class RuleMatchAdmin(admin.ModelAdmin):
-    list_display: ClassVar[list[str]] = ['rule', 'job', 'old_status', 'new_status', 'created_at']
-    list_filter: ClassVar[list[str]] = ['old_status', 'new_status']
-    search_fields: ClassVar[list[str]] = ['rule__name', 'job__title']
-    ordering: ClassVar[list[str]] = ['-created_at']
+class RuleMatchAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = ['rule', 'job', 'old_status', 'new_status', 'created_at']  # noqa: RUF012
+    list_filter = ['old_status', 'new_status']  # noqa: RUF012
+    search_fields = ['rule__name', 'job__title']  # noqa: RUF012
+    ordering = ['-created_at']  # noqa: RUF012

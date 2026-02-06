@@ -11,7 +11,7 @@ def parse_json_response(response: str) -> dict[str, Any]:
     match = re.search(r'```(?:json)?\s*(.*?)\s*```', text, re.DOTALL)
     if match:
         text = match.group(1)
-    return json.loads(text)
+    return json.loads(text)  # type: ignore[no-any-return]
 
 
 @shared_task(bind=True, max_retries=3, retry_backoff=True)
@@ -63,7 +63,7 @@ Resume:
 {resume.text}"""
 
     try:
-        response = openai_service.complete(prompt, system)
+        response = openai_service.complete(prompt, system) or ''
         result = parse_json_response(response)
 
         job.score = result.get('score')
@@ -74,10 +74,10 @@ Resume:
         job.score_task_id = ''
         job.save(update_fields=['score_task_id'])
         return {'error': 'Failed to parse response', 'raw_response': response}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         if self.request.retries >= self.max_retries:
             job.score_task_id = ''
             job.save(update_fields=['score_task_id'])
-        self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
     else:
         return result

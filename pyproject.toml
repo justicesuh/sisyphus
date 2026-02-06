@@ -16,6 +16,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "django-stubs[compatible-mypy]",
     "ruff>=0.15.0",
 ]
 
@@ -78,3 +79,25 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
+
+[tool.mypy]
+plugins = ['mypy_django_plugin.main']
+python_version = '3.14'
+strict = true
+exclude = ['migrations/']
+
+[[tool.mypy.overrides]]
+module = ['celery.*', 'environ', 'fitz']
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    'sisyphus.celery',
+    'sisyphus.core.tasks',
+    'sisyphus.jobs.tasks',
+    'sisyphus.rules.tasks',
+]
+disallow_untyped_decorators = false
+
+[tool.django-stubs]
+django_settings_module = 'sisyphus.settings'

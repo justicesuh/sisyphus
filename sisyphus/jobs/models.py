@@ -126,7 +126,7 @@ class Job(UUIDModel):
             self.pre_ban_status = self.cached_status
             update_fields.append('pre_ban_status')
         elif self.cached_status == self.Status.BANNED:
-            self.pre_ban_status = None
+            self.pre_ban_status = ''
             update_fields.append('pre_ban_status')
 
         self.status = new_status

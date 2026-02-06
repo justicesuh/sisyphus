@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import zoneinfo
 from typing import Any, ClassVar
 
@@ -15,10 +17,10 @@ def get_timezone_choices() -> list[tuple[str, str]]:
     return [(tz, tz) for tz in sorted(zoneinfo.available_timezones())]
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager['User']):
     """Manager for custom User model."""
 
-    use_in_migrations: ClassVar[bool] = True
+    use_in_migrations = True
 
     def _create_user(self, email: str, password: str, **extra_fields: Any) -> User:
         if not email:
