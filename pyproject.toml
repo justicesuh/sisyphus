@@ -16,7 +16,10 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "coverage[toml]",
     "django-stubs[compatible-mypy]",
+    "pytest",
+    "pytest-django",
     "ruff>=0.15.0",
 ]
 
@@ -98,6 +101,27 @@ module = [
     'sisyphus.rules.tasks',
 ]
 disallow_untyped_decorators = false
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = 'sisyphus.settings'
+python_files = ['test_*.py']
+python_classes = ['Test*']
+python_functions = ['test_*']
+
+[tool.coverage.run]
+source = ['sisyphus']
+branch = true
+omit = [
+    '*/migrations/*',
+    '*/tests/*',
+    'sisyphus/settings.py',
+    'sisyphus/celery.py',
+    'sisyphus/wsgi.py',
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
 
 [tool.django-stubs]
 django_settings_module = 'sisyphus.settings'

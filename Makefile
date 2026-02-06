@@ -42,8 +42,14 @@ format:
 type:
 	docker exec -it sisyphus_django uv run mypy sisyphus
 
+.PHONY: test
+test:
+	docker exec -it sisyphus_django uv run coverage run -m pytest sisyphus
+	docker exec -it sisyphus_django uv run coverage report
+	docker exec -it sisyphus_django uv run coverage html
+
 .PHONY: ci
-ci: lint type format
+ci: lint type format test
 
 .PHONY: migrations
 migrations:

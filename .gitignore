@@ -7,6 +7,11 @@ import.py
 data.json
 addrules.py
 
+# Testing and coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
 # Static and media files
 staticfiles/
 media/*
