@@ -1,8 +1,9 @@
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
+from django.db.models.functions import TruncDay
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -49,7 +50,9 @@ RESPONSE_STATUSES = {
 @login_required
 def index(request):
     now = timezone.now()
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    user_tz = timezone.get_current_timezone()
+    local_now = timezone.localtime(now, user_tz)
+    today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # --- Existing: Status counts & applied cards ---
     status_counts = dict(
@@ -133,6 +136,50 @@ def index(request):
         else 0
     )
 
+    # === Activity Heatmap ===
+    today = timezone.localdate()
+    # Go back ~1 year, then extend to the most recent Sunday
+    year_ago_raw = today - timedelta(days=364)
+    # Roll back to the Sunday on or before that date
+    start = year_ago_raw - timedelta(days=(year_ago_raw.weekday() + 1) % 7)
+    daily_applied = {
+        dt.date(): count
+        for dt, count in applied_events.filter(created_at__date__gte=start)
+        .annotate(day=TruncDay('created_at', tzinfo=user_tz))
+        .values('day')
+        .annotate(count=Count('id'))
+        .values_list('day', 'count')
+    }
+    heatmap_weeks = []
+    heatmap_months = []  # (week_index, month_label) for month headers
+    current = start
+    prev_month = None
+    while current <= today:
+        week = []
+        for dow in range(7):
+            day = current + timedelta(days=dow)
+            if day > today:
+                week.append(None)
+            else:
+                week.append({
+                    'date': day.isoformat(),
+                    'count': daily_applied.get(day, 0),
+                })
+                month_label = day.strftime('%b')
+                if month_label != prev_month:
+                    heatmap_months.append({
+                        'week': len(heatmap_weeks),
+                        'label': month_label,
+                    })
+                    prev_month = month_label
+        heatmap_weeks.append(week)
+        current += timedelta(days=7)
+
+    max_applied = max(
+        (cell['count'] for week in heatmap_weeks for cell in week if cell),
+        default=1,
+    )
+
     return render(
         request,
         'index.html',
@@ -148,6 +195,11 @@ def index(request):
             'trend_30d': _trend(applied_30d, prev_30d),
             'status_chart_json': json.dumps(status_chart),
             # 1. Application Pipeline
+            'heatmap_json': json.dumps({
+                'weeks': heatmap_weeks,
+                'months': heatmap_months,
+                'max': max_applied,
+            }),
             'response_rate': response_rate,
             'active_pipeline': active_pipeline,
             'offer_rate': offer_rate,

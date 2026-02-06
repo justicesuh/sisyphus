@@ -68,6 +68,14 @@
     </div>
 </div>
 
+{# --- Activity Heatmap --- #}
+<div class="card mb-4">
+    <div class="card-body">
+        <div id="heatmap" class="d-flex justify-content-center" style="overflow-x: auto; position: relative;"></div>
+        <div id="heatmap-tooltip" style="position: fixed; pointer-events: none; background: #24292f; color: #fff; padding: 6px 12px; border-radius: 5px; font-size: 13px; white-space: nowrap; display: none; z-index: 1000;"></div>
+    </div>
+</div>
+
 {# --- Jobs by Status + Application Pipeline --- #}
 <div class="row g-3 mb-4">
     <div class="col-lg-8">
@@ -107,6 +115,84 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <script>
+    // --- Activity Heatmap ---
+    (function() {
+        const data = JSON.parse('{{ heatmap_json|escapejs }}');
+        const container = document.getElementById('heatmap');
+        const size = 13;
+        const gap = 3;
+        const step = size + gap;
+        const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+        const labelWidth = 32;
+        const headerHeight = 18;
+        const cols = data.weeks.length;
+        const svgWidth = labelWidth + cols * step;
+        const svgHeight = headerHeight + 7 * step;
+
+        let svg = `<svg width="${svgWidth}" height="${svgHeight}" style="display:block;">`;
+
+        // Month labels
+        data.months.forEach(function(m) {
+            const x = labelWidth + m.week * step;
+            svg += `<text x="${x}" y="12" fill="#24292f" font-size="11">${m.label}</text>`;
+        });
+
+        // Day labels
+        dayLabels.forEach(function(label, i) {
+            if (label) {
+                const y = headerHeight + i * step + size - 2;
+                svg += `<text x="0" y="${y}" fill="#24292f" font-size="11">${label}</text>`;
+            }
+        });
+
+        // Cells
+        data.weeks.forEach(function(week, wi) {
+            week.forEach(function(cell, di) {
+                const x = labelWidth + wi * step;
+                const y = headerHeight + di * step;
+                if (cell === null) {
+                    return;
+                } else {
+                    let color;
+                    if (cell.count === 0) {
+                        color = '#ebedf0';
+                    } else {
+                        const ratio = cell.count / data.max;
+                        if (ratio <= 0.25) color = '#9be9a8';
+                        else if (ratio <= 0.5) color = '#40c463';
+                        else if (ratio <= 0.75) color = '#30a14e';
+                        else color = '#216e39';
+                    }
+                    svg += `<rect x="${x}" y="${y}" width="${size}" height="${size}" rx="2" fill="${color}" stroke="rgba(0,0,0,0.06)" stroke-width="1" data-date="${cell.date}" data-count="${cell.count}"/>`;
+                }
+            });
+        });
+
+        svg += '</svg>';
+        container.innerHTML = svg;
+
+        const tooltip = document.getElementById('heatmap-tooltip');
+        container.addEventListener('mouseover', function(e) {
+            const rect = e.target.closest('rect[data-date]');
+            if (!rect) return;
+            const count = rect.dataset.count;
+            const date = new Date(rect.dataset.date + 'T00:00:00');
+            const label = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+            tooltip.textContent = `${count} applied on ${label}.`;
+            tooltip.style.display = 'block';
+        });
+        container.addEventListener('mousemove', function(e) {
+            if (tooltip.style.display === 'block') {
+                tooltip.style.left = e.clientX + 12 + 'px';
+                tooltip.style.top = e.clientY - 30 + 'px';
+            }
+        });
+        container.addEventListener('mouseout', function(e) {
+            const rect = e.target.closest('rect[data-date]');
+            if (rect) tooltip.style.display = 'none';
+        });
+    })();
+
     // --- Jobs by Status (clickable, horizontal log-scale) ---
     const statusData = JSON.parse('{{ status_chart_json|escapejs }}');
     new Chart(document.getElementById('status-chart'), {
