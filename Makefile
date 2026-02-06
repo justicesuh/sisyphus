@@ -22,6 +22,19 @@ sync:
 serve:
 	docker exec -it sisyphus_django uv run manage.py runserver 0.0.0.0:8000
 
+.PHONY: lint
+lint:
+	docker exec -it sisyphus_django uv run ruff check sisyphus
+
+.PHONY: fix
+fix:
+	docker exec -it sisyphus_django uv run ruff check --fix sisyphus
+
+.PHONY: format
+format:
+	docker exec -it sisyphus_django uv run ruff format sisyphus
+
+
 .PHONY: migrations
 migrations:
 	docker exec -it sisyphus_django uv run manage.py makemigrations
