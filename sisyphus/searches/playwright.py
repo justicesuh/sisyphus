@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlparse
 
+from django.conf import settings
 from playwright.sync_api import Browser, Playwright, sync_playwright
 
 logger = logging.getLogger(__name__)
@@ -21,8 +23,29 @@ class Scraper:
             self._ensure_playwright()
             assert self._playwright is not None
             logger.info('Launching browser')
-            self._browser = self._playwright.chromium.launch(headless=True)
+            launch_kwargs: dict[str, object] = {'headless': True}
+            proxy = getattr(settings, 'PROXY', None)
+            if proxy:
+                parsed = urlparse(proxy)
+                proxy_config: dict[str, str] = {
+                    'server': f'{parsed.scheme}://{parsed.hostname}:{parsed.port}',
+                }
+                if parsed.username:
+                    proxy_config['username'] = parsed.username
+                if parsed.password:
+                    proxy_config['password'] = parsed.password
+                launch_kwargs['proxy'] = proxy_config
+            self._browser = self._playwright.chromium.launch(**launch_kwargs)
         return self._browser
+
+    def restart_browser(self) -> None:
+        """Close and relaunch the browser to rotate the proxy IP."""
+        if self._browser is not None:
+            logger.info('Restarting browser for proxy rotation')
+            self._browser.close()
+            self._browser = None
+        # Access the property to trigger a fresh launch.
+        _ = self.browser
 
     def _ensure_playwright(self) -> None:
         """Start the Playwright instance if not already running."""

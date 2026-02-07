@@ -35,9 +35,7 @@ class TestCompany:
         assert job_saved.status == Job.Status.BANNED
 
     def test_ban_does_not_affect_applied_jobs(self, company):
-        job = Job.objects.create(
-            company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.APPLIED
-        )
+        job = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.APPLIED)
         company.ban()
         job.refresh_from_db()
         assert job.status == Job.Status.APPLIED

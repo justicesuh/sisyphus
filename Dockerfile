@@ -13,6 +13,7 @@ WORKDIR /usr/app
 COPY pyproject.toml .
 COPY uv.lock .
 RUN uv sync --locked
+RUN uv run playwright install --with-deps
 COPY . .
 
 CMD /bin/bash

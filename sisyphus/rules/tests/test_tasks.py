@@ -28,14 +28,10 @@ class TestApplyAllRules:
         assert result == {'error': 'User not found'}
 
     def test_only_first_matching_rule_per_job(self, user_profile, company):
-        rule1 = Rule.objects.create(
-            user=user_profile, name='Rule 1', target_status=Job.Status.FILTERED, priority=10
-        )
+        rule1 = Rule.objects.create(user=user_profile, name='Rule 1', target_status=Job.Status.FILTERED, priority=10)
         RuleCondition.objects.create(rule=rule1, field='title', match_type='contains', value='Engineer')
 
-        rule2 = Rule.objects.create(
-            user=user_profile, name='Rule 2', target_status=Job.Status.SAVED, priority=5
-        )
+        rule2 = Rule.objects.create(user=user_profile, name='Rule 2', target_status=Job.Status.SAVED, priority=5)
         RuleCondition.objects.create(rule=rule2, field='title', match_type='contains', value='Engineer')
 
         job = Job.objects.create(
@@ -53,9 +49,7 @@ class TestApplyRuleToExistingJobs:
     """Tests for the apply_rule_to_existing_jobs task."""
 
     def test_applies_to_matching_jobs(self, user_profile, company):
-        rule = Rule.objects.create(
-            user=user_profile, name='Filter Test', target_status=Job.Status.FILTERED
-        )
+        rule = Rule.objects.create(user=user_profile, name='Filter Test', target_status=Job.Status.FILTERED)
         RuleCondition.objects.create(rule=rule, field='title', match_type='contains', value='Engineer')
 
         job = Job.objects.create(company=company, title='Software Engineer', url='https://test.com/j/eng1')

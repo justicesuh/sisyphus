@@ -97,7 +97,5 @@ class TestRuleMatch:
 
     def test_str(self, user_profile, job):
         rule = Rule.objects.create(user=user_profile, name='My Rule')
-        match = RuleMatch.objects.create(
-            rule=rule, job=job, old_status=Job.Status.NEW, new_status=Job.Status.FILTERED
-        )
+        match = RuleMatch.objects.create(rule=rule, job=job, old_status=Job.Status.NEW, new_status=Job.Status.FILTERED)
         assert str(match) == 'My Rule matched Software Engineer'
