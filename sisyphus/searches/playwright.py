@@ -1,5 +1,6 @@
 import logging
 import random
+import time
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -140,6 +141,33 @@ class Scraper:
             return page.content()
         finally:
             context.close()
+
+    def get_with_retry(
+        self,
+        url: str,
+        *,
+        wait_until: str = 'networkidle',
+        max_retries: int = 8,
+        base_delay: float = 1.0,
+    ) -> str:
+        """Get a URL with exponential backoff, restarting the browser between retries."""
+        for attempt in range(max_retries + 1):
+            try:
+                return self.get(url, wait_until=wait_until)
+            except Exception:
+                if attempt == max_retries:
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                logger.warning(
+                    'Attempt %d/%d failed for %s, retrying in %.1fs',
+                    attempt + 1,
+                    max_retries + 1,
+                    url,
+                    delay,
+                )
+                time.sleep(delay)
+                self.restart_browser()
+        raise RuntimeError('Unreachable')
 
     def close(self) -> None:
         """Shut down the browser and Playwright instances."""
