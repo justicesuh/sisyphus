@@ -8,8 +8,9 @@ class BaseParser:
         self.scraper = Scraper()
 
     def get(self, url: str) -> BeautifulSoup:
-        html = self.scraper.get_with_retry(url)
-        return self.soupify(html)
+        if (html := self.scraper.get_with_retry(url, max_retries=2)) is not None:
+            return self.soupify(html)
+        return self.soupify('')
 
     def soupify(self, html: str) -> BeautifulSoup:
         return BeautifulSoup(html, 'html.parser')

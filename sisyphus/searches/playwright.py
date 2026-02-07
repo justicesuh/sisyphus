@@ -8,6 +8,15 @@ from playwright.sync_api import Browser, Playwright, sync_playwright
 
 logger = logging.getLogger(__name__)
 
+
+class HttpError(Exception):
+    """Raised when a page navigation returns a non-2xx HTTP status."""
+
+    def __init__(self, url: str, status: int) -> None:
+        self.url = url
+        self.status = status
+        super().__init__(f'HTTP {status} for {url}')
+
 user_agent_list = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36',
@@ -124,20 +133,23 @@ class Scraper:
             logger.info('Restarting browser for proxy rotation')
             self._browser.close()
             self._browser = None
-        # Access the property to trigger a fresh launch.
-        _ = self.browser
 
     def _ensure_playwright(self) -> None:
         """Start the Playwright instance if not already running."""
         if self._playwright is None:
             self._playwright = sync_playwright().start()
 
-    def get(self, url: str, *, wait_until: str = 'networkidle') -> str:
+    def get(self, url: str, *, raise_exception: bool = False, wait_until: str = 'networkidle') -> str:
         context = self.browser.new_context(user_agent=random.choice(user_agent_list))
         try:
             page = context.new_page()
             logger.info('Get %s', url)
-            page.goto(url, wait_until=wait_until)
+            response = page.goto(url, wait_until=wait_until)
+            if response is None or response.status >= 400:
+                if raise_exception is True:
+                    status = 0 if response is None else response.status
+                    raise HttpError(url, status)
+                return None
             return page.content()
         finally:
             context.close()
@@ -155,8 +167,6 @@ class Scraper:
             try:
                 return self.get(url, wait_until=wait_until)
             except Exception:
-                if attempt == max_retries:
-                    raise
                 delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
                 logger.warning(
                     'Attempt %d/%d failed for %s, retrying in %.1fs',
@@ -167,7 +177,8 @@ class Scraper:
                 )
                 time.sleep(delay)
                 self.restart_browser()
-        raise RuntimeError('Unreachable')
+        logger.warning('Max retries for %s exceeded', url)
+        return None
 
     def close(self) -> None:
         """Shut down the browser and Playwright instances."""
