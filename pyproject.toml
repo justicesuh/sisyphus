@@ -12,6 +12,7 @@ dependencies = [
     "celery[redis]>=5.4.0",
     "django-celery-beat @ git+https://github.com/celery/django-celery-beat@bd429063cbb227c00905e7693c38895e44ff8e47",
     "openai>=1.60.0",
+    "playwright>=1.49.0",
 ]
 
 [dependency-groups]
@@ -90,7 +91,7 @@ strict = true
 exclude = ['migrations/']
 
 [[tool.mypy.overrides]]
-module = ['celery.*', 'environ', 'fitz']
+module = ['celery.*', 'environ', 'fitz', 'playwright.*']
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
@@ -99,6 +100,7 @@ module = [
     'sisyphus.core.tasks',
     'sisyphus.jobs.tasks',
     'sisyphus.rules.tasks',
+    'sisyphus.searches.tasks',
 ]
 disallow_untyped_decorators = false
 
