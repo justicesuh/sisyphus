@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "sisyphus.metrics",
     "sisyphus.resumes",
     "sisyphus.rules",
+    'sisyphus.searches',
 ]
 
 LOGGING = {
