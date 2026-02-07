@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand
 
-from sisyphus.searches.playwright import Scraper
+from sisyphus.searches.parsers.base import IPParser
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        scraper = Scraper()
-        print(scraper.scrape('https://icanhazip.com/'))
-        print(scraper.scrape('https://icanhazip.com/'))
-        scraper.close()
+        parser = IPParser()
+        print(parser.parse())
+        print(parser.parse())
+        parser.close()

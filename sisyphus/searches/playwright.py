@@ -52,21 +52,11 @@ class Scraper:
         if self._playwright is None:
             self._playwright = sync_playwright().start()
 
-    def scrape(self, url: str, *, wait_until: str = 'networkidle') -> str:
-        """Scrape a URL and return the raw HTML.
-
-        Args:
-            url: The URL to scrape.
-            wait_until: When to consider navigation complete.
-                Options: 'load', 'domcontentloaded', 'networkidle', 'commit'.
-
-        Returns:
-            The fully rendered HTML content of the page.
-        """
+    def get(self, url: str, *, wait_until: str = 'networkidle') -> str:
         context = self.browser.new_context()
         try:
             page = context.new_page()
-            logger.info('Navigating to %s', url)
+            logger.info('Get %s', url)
             page.goto(url, wait_until=wait_until)
             return page.content()
         finally:
