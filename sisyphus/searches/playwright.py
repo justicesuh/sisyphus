@@ -1,6 +1,7 @@
 import logging
 import random
 import time
+from collections.abc import Callable
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -101,9 +102,11 @@ user_agent_list = [
 class Scraper:
     """A web scraper that maintains a reusable Playwright browser instance."""
 
-    def __init__(self) -> None:
+    def __init__(self, request_interceptor: Callable | None = None) -> None:
         self._playwright: Playwright | None = None
         self._browser: Browser | None = None
+
+        self.request_interceptor = request_interceptor
 
     @property
     def browser(self) -> Browser:
@@ -143,7 +146,8 @@ class Scraper:
         context = self.browser.new_context(user_agent=random.choice(user_agent_list))
         try:
             page = context.new_page()
-            logger.info('Get %s', url)
+            page.route('**/*', self.request_interceptor)
+            logger.info('GET %s', url)
             response = page.goto(url, wait_until=wait_until)
             if response is None or response.status >= 400:
                 if raise_exception is True:

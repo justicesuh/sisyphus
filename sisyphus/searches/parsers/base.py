@@ -1,11 +1,28 @@
+import logging
+from typing import ClassVar
+from urllib.parse import urlparse
+
 from bs4 import BeautifulSoup
 
 from sisyphus.searches.playwright import Scraper
 
+logger = logging.getLogger(__name__)
+
 
 class BaseParser:
+    blocklist: ClassVar[list[str]] = []
+
     def __init__(self):
-        self.scraper = Scraper()
+        self.scraper = Scraper(self.intercept_request)
+
+    def intercept_request(self, route) -> bool:
+        host = urlparse(route.request.url).netloc
+        if host in self.blocklist:
+            route.abort()
+            return True
+        logger.info('Intercepting %s', host)
+        route.continue_()
+        return False
 
     def get(self, url: str) -> BeautifulSoup:
         if (html := self.scraper.get_with_retry(url, max_retries=2)) is not None:
