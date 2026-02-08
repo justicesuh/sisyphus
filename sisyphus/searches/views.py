@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.http import HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404, redirect, render
 
 if TYPE_CHECKING:
@@ -121,6 +122,54 @@ def search_create(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Edit an existing search."""
+    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid)
+
+    if request.method == 'POST':
+        keywords = request.POST.get('keywords', '').strip()
+        source_id = request.POST.get('source', '')
+        location_id = request.POST.get('location', '')
+        easy_apply = request.POST.get('easy_apply') == 'on'
+        is_hybrid = request.POST.get('is_hybrid') == 'on'
+        is_onsite = request.POST.get('is_onsite') == 'on'
+        is_remote = request.POST.get('is_remote') == 'on'
+
+        if not keywords or not source_id:
+            return render(
+                request,
+                'searches/search_form.html',
+                {
+                    'search': search,
+                    'error': 'Keywords and source are required.',
+                    'sources': Source.objects.all(),
+                    'locations': Location.objects.all(),
+                },
+            )
+
+        search.keywords = keywords
+        search.source_id = source_id
+        search.location_id = location_id or None
+        search.easy_apply = easy_apply
+        search.is_hybrid = is_hybrid
+        search.is_onsite = is_onsite
+        search.is_remote = is_remote
+        search.save()
+
+        return redirect('searches:search_detail', uuid=search.uuid)
+
+    return render(
+        request,
+        'searches/search_form.html',
+        {
+            'search': search,
+            'sources': Source.objects.all(),
+            'locations': Location.objects.all(),
+        },
+    )
+
+
+@login_required
 def search_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Display search detail page with recent runs."""
     search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid)
@@ -133,3 +182,28 @@ def search_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
             'runs': runs,
         },
     )
+
+
+@login_required
+def search_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Toggle a search's active status."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    search = get_object_or_404(Search, uuid=uuid)
+    search.is_active = not search.is_active
+    search.save(update_fields=['is_active'])
+
+    return redirect('searches:search_list')
+
+
+@login_required
+def search_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Delete a search."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    search = get_object_or_404(Search, uuid=uuid)
+    search.delete()
+
+    return redirect('searches:search_list')

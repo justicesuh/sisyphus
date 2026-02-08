@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Create Search - Sisyphus{% endblock %}
+{% block title %}{% if search %}Edit Search{% else %}Create Search{% endif %} - Sisyphus{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">Create Search</h5>
+                <h5 class="mb-0">{% if search %}Edit Search{% else %}Create Search{% endif %}</h5>
             </div>
             <div class="card-body">
                 {% if error %}
@@ -21,7 +21,7 @@
 
                     <div class="mb-3">
                         <label for="keywords" class="form-label">Keywords</label>
-                        <input type="text" name="keywords" id="keywords" class="form-control" required value="{% if form_data %}{{ form_data.keywords }}{% endif %}">
+                        <input type="text" name="keywords" id="keywords" class="form-control" required value="{% if form_data %}{{ form_data.keywords }}{% elif search %}{{ search.keywords }}{% endif %}">
                     </div>
 
                     <div class="row mb-3">
@@ -30,7 +30,7 @@
                             <select name="source" id="source" class="form-select" required>
                                 <option value="">Select a source</option>
                                 {% for source in sources %}
-                                <option value="{{ source.id }}" {% if form_data and form_data.source == source.id|stringformat:"d" %}selected{% endif %}>{{ source.name }}</option>
+                                <option value="{{ source.id }}" {% if form_data and form_data.source == source.id|stringformat:"d" %}selected{% elif search and search.source_id == source.id %}selected{% endif %}>{{ source.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -39,7 +39,7 @@
                             <select name="location" id="location" class="form-select">
                                 <option value="">Worldwide</option>
                                 {% for location in locations %}
-                                <option value="{{ location.id }}" {% if form_data and form_data.location == location.id|stringformat:"d" %}selected{% endif %}>{{ location.name }}</option>
+                                <option value="{{ location.id }}" {% if form_data and form_data.location == location.id|stringformat:"d" %}selected{% elif search and search.location_id == location.id %}selected{% endif %}>{{ location.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -48,33 +48,33 @@
                     <div class="row mb-3">
                         <div class="col-auto">
                             <div class="form-check">
-                                <input type="checkbox" name="easy_apply" id="easy_apply" class="form-check-input" {% if form_data and form_data.easy_apply %}checked{% endif %}>
+                                <input type="checkbox" name="easy_apply" id="easy_apply" class="form-check-input" {% if form_data and form_data.easy_apply %}checked{% elif search and search.easy_apply %}checked{% endif %}>
                                 <label for="easy_apply" class="form-check-label">Easy Apply</label>
                             </div>
                         </div>
                         <div class="col-auto">
                             <div class="form-check">
-                                <input type="checkbox" name="is_hybrid" id="is_hybrid" class="form-check-input" {% if form_data and form_data.is_hybrid %}checked{% endif %}>
+                                <input type="checkbox" name="is_hybrid" id="is_hybrid" class="form-check-input" {% if form_data and form_data.is_hybrid %}checked{% elif search and search.is_hybrid %}checked{% endif %}>
                                 <label for="is_hybrid" class="form-check-label">Hybrid</label>
                             </div>
                         </div>
                         <div class="col-auto">
                             <div class="form-check">
-                                <input type="checkbox" name="is_onsite" id="is_onsite" class="form-check-input" {% if form_data and form_data.is_onsite %}checked{% elif not form_data %}checked{% endif %}>
+                                <input type="checkbox" name="is_onsite" id="is_onsite" class="form-check-input" {% if form_data and form_data.is_onsite %}checked{% elif search and search.is_onsite %}checked{% elif not form_data and not search %}checked{% endif %}>
                                 <label for="is_onsite" class="form-check-label">Onsite</label>
                             </div>
                         </div>
                         <div class="col-auto">
                             <div class="form-check">
-                                <input type="checkbox" name="is_remote" id="is_remote" class="form-check-input" {% if form_data and form_data.is_remote %}checked{% endif %}>
+                                <input type="checkbox" name="is_remote" id="is_remote" class="form-check-input" {% if form_data and form_data.is_remote %}checked{% elif search and search.is_remote %}checked{% endif %}>
                                 <label for="is_remote" class="form-check-label">Remote</label>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Create Search</button>
-                        <a href="{% url 'searches:search_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">{% if search %}Save Changes{% else %}Create Search{% endif %}</button>
+                        <a href="{% if search %}{% url 'searches:search_detail' search.uuid %}{% else %}{% url 'searches:search_list' %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
             </div>
