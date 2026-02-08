@@ -17,6 +17,8 @@ if TYPE_CHECKING:
 class Location(UUIDModel):
     """A geographic location for job listings."""
 
+    WORLDWIDE = 92000000
+
     name = models.CharField(max_length=255, unique=True)
     geo_id = models.IntegerField(unique=True, null=True, blank=True)
 
