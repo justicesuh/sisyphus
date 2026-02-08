@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}{{ search.keywords }} - Sisyphus{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'searches:search_list' %}">Searches</a></li>
+        <li class="breadcrumb-item active">{{ search.keywords|truncatechars:50 }}</li>
+    </ol>
+</nav>
+
+<h1 class="mb-4">{{ search.keywords }}</h1>
+
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Runs</h5>
+                <span class="badge bg-secondary">{{ runs|length }}</span>
+            </div>
+            {% if runs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Status</th>
+                            <th>Started</th>
+                            <th>Completed</th>
+                            <th>Jobs Found</th>
+                            <th>Jobs Created</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for run in runs %}
+                        <tr>
+                            <td>
+                                {% if run.status == 'success' %}
+                                <span class="badge bg-success">{{ run.get_status_display }}</span>
+                                {% elif run.status == 'error' %}
+                                <span class="badge bg-danger">{{ run.get_status_display }}</span>
+                                {% else %}
+                                <span class="badge bg-primary">{{ run.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ run.started_at }}</td>
+                            <td>{{ run.completed_at|default:"-" }}</td>
+                            <td>{{ run.jobs_found }}</td>
+                            <td>{{ run.jobs_created }}</td>
+                            <td>{{ run.error_message|default:"-"|truncatechars:50 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card-body">
+                <p class="text-muted mb-0">No runs yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Details</h5>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Source</span>
+                    <span>{{ search.source }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Location</span>
+                    <span>{{ search.location|default:"-" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Easy Apply</span>
+                    <span>{% if search.easy_apply %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-muted"></i>{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Hybrid</span>
+                    <span>{% if search.is_hybrid %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-muted"></i>{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Onsite</span>
+                    <span>{% if search.is_onsite %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-muted"></i>{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Remote</span>
+                    <span>{% if search.is_remote %}<i class="bi bi-check-lg text-success"></i>{% else %}<i class="bi bi-x-lg text-muted"></i>{% endif %}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Status</span>
+                    {% if search.status == 'success' %}
+                    <span class="badge bg-success">{{ search.get_status_display }}</span>
+                    {% elif search.status == 'error' %}
+                    <span class="badge bg-danger">{{ search.get_status_display }}</span>
+                    {% elif search.status == 'running' %}
+                    <span class="badge bg-primary">{{ search.get_status_display }}</span>
+                    {% elif search.status == 'scheduled' %}
+                    <span class="badge bg-info">{{ search.get_status_display }}</span>
+                    {% else %}
+                    <span class="badge bg-secondary">{{ search.get_status_display }}</span>
+                    {% endif %}
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span class="text-muted">Last Executed</span>
+                    <span>{{ search.last_executed_at|default:"-" }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span class="text-muted">Active</span>
+                    {% if search.is_active %}
+                    <span class="badge bg-success">Yes</span>
+                    {% else %}
+                    <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

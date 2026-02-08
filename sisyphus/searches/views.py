@@ -1,3 +1,135 @@
-from django.shortcuts import render
+from __future__ import annotations
 
-# Create your views here.
+from typing import TYPE_CHECKING
+
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
+
+if TYPE_CHECKING:
+    import uuid as uuid_mod
+
+    from django.http import HttpRequest, HttpResponse
+
+from sisyphus.jobs.models import Location
+from sisyphus.searches.models import Search, Source
+
+SORT_OPTIONS = {
+    'keywords': 'keywords',
+    '-keywords': '-keywords',
+    'last_executed_at': 'last_executed_at',
+    '-last_executed_at': '-last_executed_at',
+}
+
+
+@login_required
+def search_list(request: HttpRequest) -> HttpResponse:
+    """Display paginated list of searches."""
+    searches = Search.objects.select_related('source', 'location')
+
+    q = request.GET.get('q', '').strip()
+    if q:
+        searches = searches.filter(Q(keywords__icontains=q))
+
+    status = request.GET.get('status', '')
+    if status:
+        searches = searches.filter(status=status)
+
+    active = request.GET.get('active', '')
+    if active == 'yes':
+        searches = searches.filter(is_active=True)
+    elif active == 'no':
+        searches = searches.filter(is_active=False)
+
+    sort = request.GET.get('sort', 'keywords')
+    if sort in SORT_OPTIONS:
+        searches = searches.order_by(SORT_OPTIONS[sort])
+    else:
+        sort = 'keywords'
+        searches = searches.order_by('keywords')
+
+    paginator = Paginator(searches, 25)
+    page = paginator.get_page(request.GET.get('page'))
+
+    return render(
+        request,
+        'searches/search_list.html',
+        {
+            'page': page,
+            'current_search': q,
+            'current_status': status,
+            'current_active': active,
+            'current_sort': sort,
+            'status_choices': Search.Status.choices,
+        },
+    )
+
+
+@login_required
+def search_create(request: HttpRequest) -> HttpResponse:
+    """Create a new search."""
+    if request.method == 'POST':
+        keywords = request.POST.get('keywords', '').strip()
+        source_id = request.POST.get('source', '')
+        location_id = request.POST.get('location', '')
+        easy_apply = request.POST.get('easy_apply') == 'on'
+        is_hybrid = request.POST.get('is_hybrid') == 'on'
+        is_onsite = request.POST.get('is_onsite') == 'on'
+        is_remote = request.POST.get('is_remote') == 'on'
+
+        if not keywords or not source_id:
+            return render(
+                request,
+                'searches/search_form.html',
+                {
+                    'error': 'Keywords and source are required.',
+                    'sources': Source.objects.all(),
+                    'locations': Location.objects.all(),
+                    'form_data': {
+                        'keywords': keywords,
+                        'source': source_id,
+                        'location': location_id,
+                        'easy_apply': easy_apply,
+                        'is_hybrid': is_hybrid,
+                        'is_onsite': is_onsite,
+                        'is_remote': is_remote,
+                    },
+                },
+            )
+
+        Search.objects.create(
+            keywords=keywords,
+            source_id=source_id,
+            location_id=location_id or None,
+            easy_apply=easy_apply,
+            is_hybrid=is_hybrid,
+            is_onsite=is_onsite,
+            is_remote=is_remote,
+        )
+
+        return redirect('searches:search_list')
+
+    return render(
+        request,
+        'searches/search_form.html',
+        {
+            'sources': Source.objects.all(),
+            'locations': Location.objects.all(),
+        },
+    )
+
+
+@login_required
+def search_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Display search detail page with recent runs."""
+    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid)
+    runs = search.runs.all()[:10]
+    return render(
+        request,
+        'searches/search_detail.html',
+        {
+            'search': search,
+            'runs': runs,
+        },
+    )

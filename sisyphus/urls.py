@@ -9,6 +9,7 @@ urlpatterns = [
     path('', include('sisyphus.accounts.urls')),
     path('companies/', include('sisyphus.companies.urls')),
     path('rules/', include('sisyphus.rules.urls')),
+    path('searches/', include('sisyphus.searches.urls')),
     path('admin/', admin.site.urls),
 ]
 
