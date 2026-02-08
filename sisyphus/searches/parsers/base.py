@@ -16,13 +16,13 @@ class BaseParser:
         self.scraper = Scraper(self.intercept_request)
 
     def intercept_request(self, route) -> bool:
-        host = urlparse(route.request.url).netloc
+        host = urlparse(route.request.url).hostname
         if host in self.blocklist:
             route.abort()
-            return True
-        logger.info('Intercepting %s', host)
-        route.continue_()
-        return False
+        else:
+            logger.info('Intercepting %s', host)
+            if type(self).intercept_request is BaseParser.intercept_request:
+                route.continue_()
 
     def get(self, url: str) -> BeautifulSoup:
         if (html := self.scraper.get_with_retry(url, max_retries=2)) is not None:
