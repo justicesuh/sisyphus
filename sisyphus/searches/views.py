@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
     from django.http import HttpRequest, HttpResponse
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Location
 from sisyphus.searches.models import Search, Source
 
@@ -27,7 +28,8 @@ SORT_OPTIONS = {
 @login_required
 def search_list(request: HttpRequest) -> HttpResponse:
     """Display paginated list of searches."""
-    searches = Search.objects.select_related('source', 'location')
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    searches = Search.objects.filter(user=profile).select_related('source', 'location')
 
     q = request.GET.get('q', '').strip()
     if q:
@@ -70,6 +72,7 @@ def search_list(request: HttpRequest) -> HttpResponse:
 @login_required
 def search_create(request: HttpRequest) -> HttpResponse:
     """Create a new search."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
     if request.method == 'POST':
         keywords = request.POST.get('keywords', '').strip()
         source_id = request.POST.get('source', '')
@@ -100,6 +103,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
             )
 
         Search.objects.create(
+            user=profile,
             keywords=keywords,
             source_id=source_id,
             location_id=location_id or None,
@@ -124,7 +128,8 @@ def search_create(request: HttpRequest) -> HttpResponse:
 @login_required
 def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Edit an existing search."""
-    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid, user=profile)
 
     if request.method == 'POST':
         keywords = request.POST.get('keywords', '').strip()
@@ -172,7 +177,8 @@ def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 @login_required
 def search_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Display search detail page with recent runs."""
-    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    search = get_object_or_404(Search.objects.select_related('source', 'location'), uuid=uuid, user=profile)
     runs = search.runs.all()[:10]
     return render(
         request,
@@ -190,7 +196,8 @@ def search_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    search = get_object_or_404(Search, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    search = get_object_or_404(Search, uuid=uuid, user=profile)
     search.is_active = not search.is_active
     search.save(update_fields=['is_active'])
 
@@ -203,7 +210,8 @@ def search_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    search = get_object_or_404(Search, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    search = get_object_or_404(Search, uuid=uuid, user=profile)
     search.delete()
 
     return redirect('searches:search_list')

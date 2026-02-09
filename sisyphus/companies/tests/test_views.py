@@ -4,6 +4,8 @@ from django.urls import reverse
 from sisyphus.companies.models import Company, CompanyNote
 from sisyphus.jobs.models import Job
 
+pytestmark = pytest.mark.usefixtures('user_profile')
+
 
 class TestCompanyListView:
     """Tests for the company_list view."""
@@ -14,7 +16,7 @@ class TestCompanyListView:
         assert response.status_code == 200
 
     def test_search_filter(self, client, user, company):
-        Company.objects.create(name='Other Corp', website='https://other.com')
+        Company.objects.create(name='Other Corp', website='https://other.com', user=company.user)
         client.force_login(user)
         response = client.get(reverse('companies:company_list'), {'q': 'Test'})
         assert response.status_code == 200
@@ -22,7 +24,7 @@ class TestCompanyListView:
         assert b'Other Corp' not in response.content
 
     def test_banned_filter(self, client, user, company):
-        banned = Company.objects.create(name='Bad Corp', is_banned=True)
+        banned = Company.objects.create(name='Bad Corp', is_banned=True, user=company.user)
         client.force_login(user)
         response = client.get(reverse('companies:company_list'), {'banned': 'yes'})
         assert response.status_code == 200
@@ -30,7 +32,7 @@ class TestCompanyListView:
         assert b'Test Company' not in response.content
 
     def test_sort(self, client, user, company):
-        Company.objects.create(name='Alpha Corp', website='https://alpha.com')
+        Company.objects.create(name='Alpha Corp', website='https://alpha.com', user=company.user)
         client.force_login(user)
         response = client.get(reverse('companies:company_list'), {'sort': 'name'})
         assert response.status_code == 200

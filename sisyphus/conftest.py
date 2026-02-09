@@ -19,9 +19,9 @@ def user_profile(user):
 
 
 @pytest.fixture
-def company(db):
+def company(user_profile):
     """Create a test company."""
-    return Company.objects.create(name='Test Company', website='https://test.com')
+    return Company.objects.create(name='Test Company', website='https://test.com', user=user_profile)
 
 
 @pytest.fixture
@@ -37,6 +37,7 @@ def job(company):
         company=company,
         title='Software Engineer',
         url='https://test.com/jobs/1',
+        user=company.user,
     )
 
 
@@ -51,4 +52,5 @@ def job_with_description(company, location):
         populated=True,
         description='We are looking for a senior developer with Python experience.',
         flexibility=Job.Flexibility.REMOTE,
+        user=company.user,
     )

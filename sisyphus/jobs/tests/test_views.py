@@ -5,6 +5,8 @@ from django.urls import reverse
 
 from sisyphus.jobs.models import Job, JobNote
 
+pytestmark = pytest.mark.usefixtures('user_profile')
+
 
 class TestJobListView:
     """Tests for the job_list view."""
@@ -15,7 +17,7 @@ class TestJobListView:
         assert response.status_code == 200
 
     def test_search_filter(self, client, user, job, company):
-        Job.objects.create(company=company, title='Data Analyst', url='https://test.com/j/other')
+        Job.objects.create(company=company, title='Data Analyst', url='https://test.com/j/other', user=job.user)
         client.force_login(user)
         response = client.get(reverse('jobs:job_list'), {'q': 'Software'})
         assert response.status_code == 200
@@ -24,7 +26,7 @@ class TestJobListView:
 
     def test_status_filter(self, client, user, job, company):
         saved_job = Job.objects.create(
-            company=company, title='Saved Job', url='https://test.com/j/saved', status=Job.Status.SAVED
+            company=company, title='Saved Job', url='https://test.com/j/saved', status=Job.Status.SAVED, user=job.user
         )
         client.force_login(user)
         response = client.get(reverse('jobs:job_list'), {'status': 'saved'})

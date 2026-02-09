@@ -15,7 +15,7 @@ class TestApplyAllRules:
         RuleCondition.objects.create(rule=rule, field='title', match_type='contains', value='intern')
 
         job = Job.objects.create(
-            company=company, title='Software Intern', url='https://test.com/j/intern', populated=True
+            company=company, title='Software Intern', url='https://test.com/j/intern', populated=True, user=user_profile
         )
 
         result = apply_all_rules(user_profile.id)
@@ -35,7 +35,7 @@ class TestApplyAllRules:
         RuleCondition.objects.create(rule=rule2, field='title', match_type='contains', value='Engineer')
 
         job = Job.objects.create(
-            company=company, title='Software Engineer', url='https://test.com/j/eng', populated=True
+            company=company, title='Software Engineer', url='https://test.com/j/eng', populated=True, user=user_profile
         )
 
         result = apply_all_rules(user_profile.id)
@@ -52,7 +52,7 @@ class TestApplyRuleToExistingJobs:
         rule = Rule.objects.create(user=user_profile, name='Filter Test', target_status=Job.Status.FILTERED)
         RuleCondition.objects.create(rule=rule, field='title', match_type='contains', value='Engineer')
 
-        job = Job.objects.create(company=company, title='Software Engineer', url='https://test.com/j/eng1')
+        job = Job.objects.create(company=company, title='Software Engineer', url='https://test.com/j/eng1', user=user_profile)
 
         result = apply_rule_to_existing_jobs(rule.id)
         assert result == {'matched_count': 1}

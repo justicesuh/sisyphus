@@ -4,6 +4,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.core.models import UUIDModel
 from sisyphus.jobs.models import Location, Job
 
@@ -33,6 +34,7 @@ class Search(UUIDModel):
         SUCCESS = 'success', _('Success')
         ERROR = 'error', _('Error')
 
+    user = models.ForeignKey(UserProfile, related_name='searches', on_delete=models.CASCADE)
     keywords = models.CharField(max_length=255)
     location = models.ForeignKey(Location, related_name='searches', on_delete=models.SET_NULL, null=True, blank=True)
 

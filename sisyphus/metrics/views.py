@@ -13,6 +13,7 @@ from django.utils import timezone
 if TYPE_CHECKING:
     from django.http import HttpRequest, HttpResponse
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Job, JobEvent
 
 
@@ -92,17 +93,18 @@ def _build_heatmap(applied_events: Any, user_tz: Any) -> dict[str, Any]:
 @login_required
 def index(request: HttpRequest) -> HttpResponse:
     """Display the metrics dashboard."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
     now = timezone.now()
     user_tz = timezone.get_current_timezone()
     local_now = timezone.localtime(now, user_tz)
     today_start = local_now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     # --- Existing: Status counts & applied cards ---
-    status_counts = dict(Job.objects.values_list('status').annotate(count=Count('id')).order_by())
+    status_counts = dict(Job.objects.filter(user=profile).values_list('status').annotate(count=Count('id')).order_by())
 
-    to_review = Job.objects.filter(status=Job.Status.NEW, populated=True).count()
+    to_review = Job.objects.filter(status=Job.Status.NEW, populated=True, user=profile).count()
 
-    applied_events = JobEvent.objects.filter(new_status=Job.Status.APPLIED)
+    applied_events = JobEvent.objects.filter(new_status=Job.Status.APPLIED, job__user=profile)
     applied_today = applied_events.filter(created_at__gte=today_start).count()
     applied_7d = applied_events.filter(created_at__gte=now - timedelta(days=7)).count()
     applied_30d = applied_events.filter(created_at__gte=now - timedelta(days=30)).count()
@@ -146,7 +148,7 @@ def index(request: HttpRequest) -> HttpResponse:
     )
     response_rate = round(responded_count / len(applied_job_ids) * 100) if applied_job_ids else 0
 
-    active_pipeline = Job.objects.filter(status__in=[Job.Status.INTERVIEWING, Job.Status.OFFER]).count()
+    active_pipeline = Job.objects.filter(status__in=[Job.Status.INTERVIEWING, Job.Status.OFFER], user=profile).count()
 
     offer_job_count = (
         JobEvent.objects.filter(

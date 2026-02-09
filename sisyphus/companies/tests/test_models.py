@@ -24,9 +24,9 @@ class TestCompany:
         assert company.ban_reason == 'Spam'
 
     def test_ban_updates_new_jobs_to_banned(self, company):
-        job_new = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.NEW)
+        job_new = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.NEW, user=company.user)
         job_saved = Job.objects.create(
-            company=company, title='Job 2', url='https://test.com/j/2', status=Job.Status.SAVED
+            company=company, title='Job 2', url='https://test.com/j/2', status=Job.Status.SAVED, user=company.user
         )
         company.ban()
         job_new.refresh_from_db()
@@ -35,7 +35,7 @@ class TestCompany:
         assert job_saved.status == Job.Status.BANNED
 
     def test_ban_does_not_affect_applied_jobs(self, company):
-        job = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.APPLIED)
+        job = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.APPLIED, user=company.user)
         company.ban()
         job.refresh_from_db()
         assert job.status == Job.Status.APPLIED
@@ -49,7 +49,7 @@ class TestCompany:
         assert company.ban_reason == ''
 
     def test_unban_restores_pre_ban_status(self, company):
-        job = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.SAVED)
+        job = Job.objects.create(company=company, title='Job 1', url='https://test.com/j/1', status=Job.Status.SAVED, user=company.user)
         company.ban()
         job.refresh_from_db()
         assert job.status == Job.Status.BANNED

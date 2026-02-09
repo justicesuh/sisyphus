@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
     from sisyphus.core.types import HtmxHttpRequest
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Job, JobNote
 
 SORT_OPTIONS = {
@@ -35,7 +36,8 @@ SORT_OPTIONS = {
 @login_required
 def job_list(request: HttpRequest) -> HttpResponse:
     """Display paginated list of jobs with filtering and sorting."""
-    jobs = Job.objects.select_related('company', 'location')
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    jobs = Job.objects.filter(user=profile).select_related('company', 'location')
 
     search = request.GET.get('q', '').strip()
     if search:
@@ -77,7 +79,8 @@ def job_list(request: HttpRequest) -> HttpResponse:
 @login_required
 def job_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Display job detail page."""
-    job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    job = get_object_or_404(Job.objects.select_related('company', 'location'), uuid=uuid, user=profile)
     return render(
         request,
         'jobs/job_detail.html',
@@ -96,7 +99,8 @@ def job_update_status(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResp
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    job = get_object_or_404(Job, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    job = get_object_or_404(Job, uuid=uuid, user=profile)
     new_status = request.POST.get('status')
 
     if new_status in Job.Status.values:
@@ -123,7 +127,8 @@ def job_add_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    job = get_object_or_404(Job, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    job = get_object_or_404(Job, uuid=uuid, user=profile)
     text = request.POST.get('text', '').strip()
 
     if text:
@@ -141,7 +146,8 @@ def job_delete_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID, note_id: int)
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    note = get_object_or_404(JobNote, id=note_id, job__uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    note = get_object_or_404(JobNote, id=note_id, job__uuid=uuid, job__user=profile)
     job = note.job
     note.delete()
 
@@ -154,19 +160,20 @@ def job_delete_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID, note_id: int)
 @login_required
 def job_review(request: HttpRequest) -> HttpResponse:
     """Display the job review page for triaging jobs."""
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
     filter_status = request.GET.get('status', 'new')
     if filter_status not in ['new', 'saved']:
         filter_status = 'new'
 
     job = (
-        Job.objects.filter(status=filter_status, populated=True)
+        Job.objects.filter(status=filter_status, populated=True, user=profile)
         .select_related('company', 'location')
         .order_by('-date_posted')
         .first()
     )
 
-    new_count = Job.objects.filter(status=Job.Status.NEW, populated=True).count()
-    saved_count = Job.objects.filter(status=Job.Status.SAVED, populated=True).count()
+    new_count = Job.objects.filter(status=Job.Status.NEW, populated=True, user=profile).count()
+    saved_count = Job.objects.filter(status=Job.Status.SAVED, populated=True, user=profile).count()
 
     return render(
         request,
@@ -186,7 +193,8 @@ def job_review_action(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    job = get_object_or_404(Job, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    job = get_object_or_404(Job, uuid=uuid, user=profile)
     new_status = request.POST.get('status')
 
     if new_status in Job.Status.values:

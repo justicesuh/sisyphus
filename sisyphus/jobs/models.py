@@ -6,6 +6,7 @@ from django.db import models
 from django.utils import dateparse, timezone
 from django.utils.translation import gettext_lazy as _
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.companies.models import Company
 from sisyphus.core.models import UUIDModel
 
@@ -46,7 +47,8 @@ class JobManager(models.Manager):
     
     def add_job(self, job: dict, search_run: 'SearchRun') -> bool:
         """Add parsed job to database."""
-        company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], defaults={'name': job['company']})
+        user = search_run.search.user
+        company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], user=user, defaults={'name': job['company']})
 
         location = None
         if job['location'] is not None:
@@ -54,6 +56,7 @@ class JobManager(models.Manager):
 
         _, created = self.get_or_create(
             url=job['url'],
+            user=user,
             defaults={
                 'company': company,
                 'title': job['title'],
@@ -93,9 +96,10 @@ class Job(UUIDModel):
         ONSITE = 'onsite', _('Onsite')
         REMOTE = 'remote', _('Remote')
 
+    user = models.ForeignKey(UserProfile, related_name='jobs', on_delete=models.CASCADE)
     company = models.ForeignKey(Company, related_name='jobs', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    url = models.URLField(unique=True)
+    url = models.URLField()
     location = models.ForeignKey(Location, related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     date_posted = models.DateTimeField(null=True, blank=True)
 
@@ -118,6 +122,11 @@ class Job(UUIDModel):
     score_task_id = models.CharField(max_length=255, blank=True)
 
     objects = JobManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['url', 'user'], name='unique_job_url_per_user'),
+        ]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the job and cache the current status."""

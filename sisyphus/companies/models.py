@@ -4,15 +4,17 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.core.models import UUIDModel
 
 
 class Company(UUIDModel):
     """A company that posts jobs."""
 
+    user = models.ForeignKey(UserProfile, related_name='companies', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    website = models.URLField(unique=True, null=True, blank=True)
-    linkedin_url = models.URLField(unique=True, null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+    linkedin_url = models.URLField(null=True, blank=True)
 
     is_banned = models.BooleanField(default=False)
     banned_at = models.DateTimeField(null=True, blank=True)
@@ -21,6 +23,10 @@ class Company(UUIDModel):
     class Meta:
         verbose_name = _('company')
         verbose_name_plural = _('companies')
+        constraints = [
+            models.UniqueConstraint(fields=['website', 'user'], name='unique_company_website_per_user'),
+            models.UniqueConstraint(fields=['linkedin_url', 'user'], name='unique_company_linkedin_per_user'),
+        ]
 
     def __str__(self) -> str:
         """Return the company name."""

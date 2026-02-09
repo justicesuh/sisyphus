@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
     from sisyphus.core.types import HtmxHttpRequest
 
+from sisyphus.accounts.models import UserProfile
 from sisyphus.companies.models import Company, CompanyNote
 
 SORT_OPTIONS = {
@@ -28,7 +29,8 @@ SORT_OPTIONS = {
 @login_required
 def company_list(request: HttpRequest) -> HttpResponse:
     """Display paginated list of companies."""
-    companies = Company.objects.annotate(job_count=Count('jobs'))
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    companies = Company.objects.filter(user=profile).annotate(job_count=Count('jobs'))
 
     search = request.GET.get('q', '').strip()
     if search:
@@ -65,7 +67,8 @@ def company_list(request: HttpRequest) -> HttpResponse:
 @login_required
 def company_detail(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     """Display company detail page with jobs and notes."""
-    company = get_object_or_404(Company, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    company = get_object_or_404(Company, uuid=uuid, user=profile)
     jobs = company.jobs.select_related('location').order_by('-date_posted')
     return render(
         request,
@@ -84,7 +87,8 @@ def company_add_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpRespo
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    company = get_object_or_404(Company, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    company = get_object_or_404(Company, uuid=uuid, user=profile)
     text = request.POST.get('text', '').strip()
 
     if text:
@@ -106,7 +110,8 @@ def company_delete_note(request: HtmxHttpRequest, uuid: uuid_mod.UUID, note_id: 
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    note = get_object_or_404(CompanyNote, id=note_id, company__uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    note = get_object_or_404(CompanyNote, id=note_id, company__uuid=uuid, company__user=profile)
     company = note.company
     note.delete()
 
@@ -126,7 +131,8 @@ def company_toggle_ban(request: HtmxHttpRequest, uuid: uuid_mod.UUID) -> HttpRes
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    company = get_object_or_404(Company, uuid=uuid)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    company = get_object_or_404(Company, uuid=uuid, user=profile)
 
     if company.is_banned:
         company.unban()
