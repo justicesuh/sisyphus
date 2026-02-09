@@ -31,7 +31,7 @@ class BaseParser:
         return False
 
     def get(self, url: str) -> NullableTag:
-        if (html := self.scraper.get_with_retry(url, max_retries=2)) is not None:
+        if (html := self.scraper.get_with_retry(url)) is not None:
             return NullableTag(self.soupify(html).html)
         return NullableTag()
 
