@@ -146,7 +146,8 @@ class Scraper:
         context = self.browser.new_context(user_agent=random.choice(user_agent_list))
         try:
             page = context.new_page()
-            page.route('**/*', self.request_interceptor)
+            if self.request_interceptor is not None:
+                page.route('**/*', self.request_interceptor)
             logger.info('GET %s', url)
             response = page.goto(url, wait_until=wait_until)
             if response is None or response.status >= 400:

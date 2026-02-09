@@ -4,6 +4,7 @@ from urllib.parse import quote, urlencode, urlparse
 
 from django.utils import timezone
 
+from sisyphus.jobs.models import Job
 from sisyphus.searches.models import Search
 from sisyphus.searches.parsers.base import BaseParser
 from sisyphus.searches.utils import NullableTag, remove_query
@@ -161,3 +162,29 @@ class LinkedInParser(BaseParser):
             if job is not None:
                 jobs.append(job)
         return jobs
+    
+    def populate_job(self, job: Job) -> None:
+        tag = self.get(job.url)
+        if not tag:
+            logger.warning('Job not found, marking as expired.')
+            job.update_status(Job.Status.EXPIRED)
+            return
+        job.raw_html = str(tag)
+
+        try:
+            job.description = tag.find('div', {'class': 'show-more-less-html__markup'}).decode_contents().strip()
+        except Exception:
+            logger.exception('Error parsing job description.')
+
+        try:
+            code = tag.find('code', {'id': 'applyUrl'})
+            if code is not None:
+                job.easy_apply = False
+            else:
+                job.easy_apply = True
+        except Exception:
+            logger.exception('Failed to parse easy application status. Defaulting to False.')
+            job.easy_apply = False
+
+        job.populated = True
+        job.save(update_fields=['raw_html', 'description', 'easy_apply', 'populated'])

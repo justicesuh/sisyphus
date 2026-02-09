@@ -28,32 +28,27 @@ class NullableTag:
             return []
         return self._tag.find_all(*args, **kwargs)
 
-    def select_one(self, *args, **kwargs) -> NullableTag:
-        if self._tag is None:
-            return NullableTag()
-        return NullableTag(self._tag.select_one(*args, **kwargs))
-
-    def select(self, *args, **kwargs) -> list[Tag]:
-        if self._tag is None:
-            return []
-        return self._tag.select(*args, **kwargs)
-
     def get_text(self, *args, **kwargs) -> str:
         if self._tag is None:
             return ''
         return self._tag.get_text(*args, **kwargs)
 
-    @property
-    def text(self) -> str:
+    def decode_contents(self, *args, **kwargs) -> str:
         if self._tag is None:
             return ''
-        return self._tag.get_text(strip=True)
+        return self._tag.decode_contents(*args, **kwargs)
 
     @property
     def string(self) -> NavigableString | None:
         if self._tag is None:
             return None
         return self._tag.string
+
+    @property
+    def text(self) -> str:
+        if self._tag is None:
+            return ''
+        return self._tag.get_text(strip=True)
 
     def get(self, key: str, default: str | None = None) -> str | None:
         if self._tag is None:
