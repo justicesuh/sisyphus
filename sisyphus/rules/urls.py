@@ -1,8 +1,13 @@
-from django.urls import path
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
 
 from . import views
+from .api_views import RuleViewSet
 
 app_name = 'rules'
+
+router = DefaultRouter()
+router.register('', RuleViewSet, basename='rule-api')
 
 urlpatterns = [
     path('', views.rule_list, name='rule_list'),
@@ -12,4 +17,5 @@ urlpatterns = [
     path('<uuid:uuid>/delete/', views.rule_delete, name='rule_delete'),
     path('<uuid:uuid>/toggle/', views.rule_toggle, name='rule_toggle'),
     path('<uuid:uuid>/apply/', views.rule_apply, name='rule_apply'),
+    path('api/', include(router.urls)),
 ]
