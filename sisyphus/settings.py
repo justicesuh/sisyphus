@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django_celery_beat',
     'django_htmx',
     'rest_framework',
+    'drf_spectacular',
     'sisyphus.accounts',
     'sisyphus.companies',
     'sisyphus.core',
@@ -204,4 +205,11 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 25,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Sisyphus API',
+    'DESCRIPTION': 'Job search automation API',
+    'VERSION': '1.0.0',
 }
