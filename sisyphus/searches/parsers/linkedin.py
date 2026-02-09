@@ -26,6 +26,8 @@ class LinkedInParser(BaseParser):
         'tzm.protechts.net',
     ]
 
+    name = 'linkedin'
+
     def intercept_request(self, route):
         if super().intercept_request(route):
             return
@@ -35,7 +37,7 @@ class LinkedInParser(BaseParser):
         else:
             route.continue_()
 
-    def get_linkedin_url(self, endpoint: str, search: Search, page: int = 1):
+    def get_linkedin_url(self, endpoint: str, search: Search, page: int = 1, period: int | None = None):
         params = {
             'keywords': quote(search.keywords),
             'geo_id': search.geo_id,
@@ -58,6 +60,9 @@ class LinkedInParser(BaseParser):
 
         if page > 1:
             params['start'] = self.JOBS_PER_PAGE * (page - 1)
+
+        if period is not None:
+            params['f_TPR'] = f'r{period}'
 
         # if location contains a comma set distance to 25 with the
         # assumption that names with commas represent cities in states
@@ -140,11 +145,12 @@ class LinkedInParser(BaseParser):
             return None
         return job
 
-    def parse(self, search, page=1) -> list[dict]:
+    def parse(self, search: Search, page=1) -> list[dict]:
         """Parse jobs."""
         jobs: list[dict] = []
+        period = search.calculate_period()
 
-        url = self.get_linkedin_url('/jobs-guest/jobs/api/seeMoreJobPostings/', search, page)
+        url = self.get_linkedin_url('/jobs-guest/jobs/api/seeMoreJobPostings/', search, page, period)
         tag = self.get(url)
         if not tag:
             logger.warning('Response for %s is None', url)

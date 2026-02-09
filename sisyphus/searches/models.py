@@ -1,8 +1,20 @@
+from enum import IntEnum
+
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from sisyphus.core.models import UUIDModel
 from sisyphus.jobs.models import Location
+
+
+class Period(IntEnum):
+    """Represent common search periods."""
+
+    MONTH = 2592000
+    WEEK = 604800
+    DAY = 86400
+    HOUR = 3600
 
 
 class Source(UUIDModel):
@@ -48,6 +60,34 @@ class Search(UUIDModel):
         if geo_id is None:
             return Location.WORLDWIDE
         return int(geo_id)
+
+    def calculate_period(self) -> int:
+        """Return the multiple of a Period value closest to the time elapsed."""
+        if not self.last_executed_at:
+            return Period.MONTH
+
+        delta = (timezone.now() - self.last_executed_at).total_seconds()
+
+        best = Period.MONTH
+        best_error = float('inf')
+        for period in Period:
+            multiple = max(1, round(delta / period))
+            value = multiple * period
+            error = abs(delta - value)
+            if error < best_error:
+                best = value
+                best_error = error
+
+        return best
+
+    def set_status(self, status: Status) -> None:
+        """Set status and save."""
+        self.status = status
+        update_fields = ['status']
+        if self.status in [Search.Status.SUCCESS, Search.Status.ERROR]:
+            self.last_executed_at = timezone.now()
+            update_fields.append('last_executed_at')
+        self.save(update_fields=update_fields)
 
 
 class SearchRun(UUIDModel):

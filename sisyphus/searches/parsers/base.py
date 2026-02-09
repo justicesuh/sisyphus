@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 class BaseParser:
     blocklist: ClassVar[list[str]] = []
 
+    name: ClassVar[str] = ''
+
     def __init__(self):
         self.scraper = Scraper(self.intercept_request)
 
@@ -41,6 +43,8 @@ class BaseParser:
 
 
 class IPParser(BaseParser):
+    name = 'ip'
+
     def parse(self) -> str:
         tag = self.get('https://icanhazip.cfom/')
         if (pre := tag.find('pre')) is not None:
