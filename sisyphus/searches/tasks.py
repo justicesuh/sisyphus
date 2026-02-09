@@ -55,6 +55,22 @@ def run_search(search_id: int) -> dict:
 
 
 @shared_task
+def execute_search(search_id: int, user_id: int) -> dict:
+    """Run a full search pipeline: scrape, apply rules, populate, apply rules."""
+    from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
+
+    result = run_search(search_id)
+    if 'error' in result:
+        return result
+
+    apply_all_rules(user_id)
+    populate_jobs(result['run_id'])
+    apply_all_rules(user_id)
+
+    return result
+
+
+@shared_task
 def populate_jobs(run_id: int) -> dict:
     """Populate unpopulated jobs for a search run."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415
