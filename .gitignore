@@ -5,7 +5,6 @@ docs
 .env
 import.py
 data.json
-addrules.py
 
 # Testing and coverage
 .coverage

@@ -18,6 +18,23 @@ class RuleSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'name', 'is_active', 'match_mode', 'target_status', 'priority', 'conditions', 'created_at', 'updated_at')
         read_only_fields = ('uuid', 'created_at', 'updated_at')
 
+    def validate(self, data):
+        user = self.context['request'].user.profile
+        conditions = [
+            {'field': c['field'], 'match_type': c['match_type'], 'value': c['value']}
+            for c in data.get('conditions', [])
+        ]
+        duplicate = Rule.find_duplicate(
+            user=user,
+            match_mode=data.get('match_mode', Rule.MatchMode.ALL),
+            target_status=data.get('target_status', ''),
+            conditions=conditions,
+            exclude_rule=self.instance,
+        )
+        if duplicate:
+            raise serializers.ValidationError(f'A rule with these settings already exists: "{duplicate.name}"')
+        return data
+
     def create(self, validated_data):
         conditions_data = validated_data.pop('conditions')
         rule = Rule.objects.create(**validated_data)
