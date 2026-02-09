@@ -16,7 +16,7 @@ class Source(UUIDModel):
 class Search(UUIDModel):
     class Status(models.TextChoices):
         IDLE = 'idle', _('Idle')
-        SCHEDULED = 'scheduled', _('Scheduled')
+        QUEUED = 'queued', _('Queued')
         RUNNING = 'running', _('Running')
         SUCCESS = 'success', _('Success')
         ERROR = 'error', _('Error')
@@ -33,7 +33,7 @@ class Search(UUIDModel):
     is_active = models.BooleanField(default=True)
 
     last_executed_at = models.DateTimeField(null=True, blank=True)
-    status = models.CharField(max_length=9, choices=Status.choices, default=Status.IDLE)
+    status = models.CharField(max_length=7, choices=Status.choices, default=Status.IDLE)
 
     class Meta:
         verbose_name = 'search'
