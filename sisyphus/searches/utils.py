@@ -1,9 +1,17 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin, urlparse
 
 if TYPE_CHECKING:
     from bs4 import NavigableString, Tag
+
+
+def remove_query(url: str | None) -> str | None:
+    """Remove query string from url."""
+    if url is None:
+        return None
+    return urljoin(url, urlparse(url).path)
 
 
 class NullableTag:
@@ -39,7 +47,7 @@ class NullableTag:
     def text(self) -> str:
         if self._tag is None:
             return ''
-        return self._tag.text
+        return self._tag.get_text(strip=True)
 
     @property
     def string(self) -> NavigableString | None:

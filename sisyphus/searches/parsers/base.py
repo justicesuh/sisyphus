@@ -20,10 +20,13 @@ class BaseParser:
         host = urlparse(route.request.url).hostname
         if host in self.blocklist:
             route.abort()
+            return True
         else:
             logger.info('Intercepting %s', host)
             if type(self).intercept_request is BaseParser.intercept_request:
                 route.continue_()
+                return True
+        return False
 
     def get(self, url: str) -> NullableTag:
         if (html := self.scraper.get_with_retry(url, max_retries=2)) is not None:
