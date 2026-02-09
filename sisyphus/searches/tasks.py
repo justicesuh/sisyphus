@@ -58,7 +58,13 @@ def run_search(search_id: int) -> dict:
 def execute_search(search_id: int, user_id: int) -> dict:
     """Run a full search pipeline: scrape, apply rules, populate, apply rules, score."""
     from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
+    from sisyphus.searches.models import Search  # noqa: PLC0415
 
+    search = Search.objects.get(id=search_id)
+    if search.status in (Search.Status.QUEUED, Search.Status.RUNNING):
+        return {'skipped': True, 'reason': 'Search is already in progress'}
+
+    search.set_status(Search.Status.QUEUED)
     result = run_search(search_id)
     if 'error' in result:
         return result
