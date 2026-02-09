@@ -1,8 +1,9 @@
-from __future__ import annotations
-
+import logging
+from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
+from django.utils import dateparse, timezone
 from django.utils.translation import gettext_lazy as _
 
 from sisyphus.companies.models import Company
@@ -12,6 +13,9 @@ if TYPE_CHECKING:
     from celery.result import AsyncResult
 
     from sisyphus.resumes.models import Resume
+    from sisyphus.searches.models import SearchRun
+
+logger = logging.getLogger(__name__)
 
 
 class Location(UUIDModel):
@@ -25,6 +29,45 @@ class Location(UUIDModel):
     def __str__(self) -> str:
         """Return the location name."""
         return self.name
+
+
+class JobManager(models.Manager):
+    """Custom model manager for Job."""
+
+    def parse_datetime(self, datetime_str: str) -> datetime | None:
+        """Parse datetime string and make timezone aware."""
+        dt = dateparse.parse_datetime(datetime_str)
+        if dt is None:
+            logger.warning('dateparse.parse_datetime failed for %s. Setting to None', datetime_str)
+            return None
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt)
+        return dt
+    
+    def add_job(self, job: dict, search_run: 'SearchRun') -> bool:
+        """Add parsed job to database."""
+        company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], defaults={'name': job['company']})
+
+        location = None
+        if job['location'] is not None:
+            location, _  = Location.objects.get_or_create(name=job['location'])
+
+        _, created = self.get_or_create(
+            url=job['url'],
+            defaults={
+                'company': company,
+                'title': job['title'],
+                'location': location,
+                'date_posted': self.parse_datetime(job['date_posted']),
+                'search_run': search_run,
+                'date_found': self.parse_datetime(job['date_found']),
+                'flexibility': search_run.search.flexibility,
+            }
+        )
+        return created
+    
+    def add_jobs(self, jobs: list[dict], search_run: 'SearchRun') -> int:
+        return sum(1 for job in jobs if self.add_job(job, search_run))
 
 
 class Job(UUIDModel):
@@ -56,6 +99,7 @@ class Job(UUIDModel):
     location = models.ForeignKey(Location, related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     date_posted = models.DateTimeField(null=True, blank=True)
 
+    search_run = models.ForeignKey('searches.SearchRun', related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     date_found = models.DateTimeField(null=True, blank=True)
     populated = models.BooleanField(default=False)
 
@@ -72,6 +116,8 @@ class Job(UUIDModel):
     score = models.IntegerField(null=True, blank=True)
     score_explanation = models.TextField(default='', blank=True)
     score_task_id = models.CharField(max_length=255, blank=True)
+
+    objects = JobManager()
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the job and cache the current status."""

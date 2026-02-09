@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from sisyphus.core.models import UUIDModel
-from sisyphus.jobs.models import Location
+from sisyphus.jobs.models import Location, Job
 
 
 class Period(IntEnum):
@@ -55,6 +55,22 @@ class Search(UUIDModel):
         return self.keywords
     
     @property
+    def flexibility(self) -> str | None:
+        """Compute job flexibility based on Search booleans.
+        
+        Return None if multiple booleans are True.
+        """
+        if sum(self.is_hybrid, self.is_onsite, self.is_remote) != 1:
+            return None
+        if self.is_hybrid:
+            return Job.Flexibility.HYBRID
+        if self.is_onsite:
+            return Job.Flexibility.ONSITE
+        if self.is_remote:
+            return Job.Flexibility.REMOTE
+        return None
+
+    @property
     def geo_id(self):
         geo_id = getattr(self.location, 'geo_id', None)
         if geo_id is None:
@@ -97,6 +113,7 @@ class SearchRun(UUIDModel):
         ERROR = 'error', _('Error')
 
     search = models.ForeignKey(Search, related_name='runs', on_delete=models.CASCADE)
+    period = models.IntegerField(default=0)
     status = models.CharField(max_length=7, choices=Status.choices, default=Status.RUNNING)
 
     started_at = models.DateTimeField(auto_now_add=True)

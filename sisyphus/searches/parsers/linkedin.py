@@ -146,10 +146,9 @@ class LinkedInParser(BaseParser):
             return None
         return job
 
-    def parse(self, search: Search, page=1) -> list[dict]:
+    def parse(self, search: Search, page=1, period: int | None = None) -> list[dict]:
         """Parse jobs."""
         jobs: list[dict] = []
-        period = search.calculate_period()
 
         url = self.get_linkedin_url('/jobs-guest/jobs/api/seeMoreJobPostings/', search, page, period)
         tag = self.get(url)
