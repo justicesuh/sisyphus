@@ -2,9 +2,11 @@ __pycache__
 db-data
 docs
 *.py[cod]
-.env
+.env*
+!.env.dist
 import.py
 data.json
+DEPLOY.md
 
 # Testing and coverage
 .coverage

@@ -6,6 +6,7 @@ docs
 *.pyo
 *.pyd
 .env
+.env.production
 README.md
 .coverage
 htmlcov/

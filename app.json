@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "dokku": {
+      "predeploy": "uv run manage.py migrate && uv run manage.py collectstatic --noinput"
+    }
+  }
+}

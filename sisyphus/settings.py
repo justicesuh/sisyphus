@@ -23,6 +23,9 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 AUTH_USER_MODEL = 'accounts.User'
 
 
@@ -128,6 +131,7 @@ WSGI_APPLICATION = 'sisyphus.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {'default': env.db_url('DATABASE_URL')}
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=0)
 
 
 # Password validation
@@ -179,7 +183,7 @@ LOGIN_REDIRECT_URL = 'metrics:index'
 LOGOUT_REDIRECT_URL = 'metrics:index'
 
 # Celery configuration
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+CELERY_BROKER_URL = env('REDIS_URL')
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
