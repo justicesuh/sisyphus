@@ -186,6 +186,12 @@ CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
+# Simple JWT
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'uuid',
+    'USER_ID_CLAIM': 'uuid',
+}
+
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
