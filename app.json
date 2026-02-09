@@ -3,5 +3,15 @@
     "dokku": {
       "predeploy": "uv run manage.py migrate && uv run manage.py collectstatic --noinput"
     }
+  },
+  "healthchecks": {
+    "web": [
+      {
+        "type": "startup",
+        "name": "web check",
+        "path": "/login/",
+        "attempts": 3
+      }
+    ]
   }
 }
