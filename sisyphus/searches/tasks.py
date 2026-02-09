@@ -56,7 +56,7 @@ def run_search(search_id: int) -> dict:
 
 @shared_task
 def execute_search(search_id: int, user_id: int) -> dict:
-    """Run a full search pipeline: scrape, apply rules, populate, apply rules."""
+    """Run a full search pipeline: scrape, apply rules, populate, apply rules, score."""
     from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
 
     result = run_search(search_id)
@@ -66,6 +66,7 @@ def execute_search(search_id: int, user_id: int) -> dict:
     apply_all_rules(user_id)
     populate_jobs(result['run_id'])
     apply_all_rules(user_id)
+    score_new_jobs(result['run_id'], user_id)
 
     return result
 
@@ -97,3 +98,28 @@ def populate_jobs(run_id: int) -> dict:
         'run_id': run_id,
         'populated': populated,
     }
+
+
+def score_new_jobs(run_id: int, user_id: int) -> dict:
+    """Score remaining new jobs in a search run against the user's resume."""
+    from sisyphus.accounts.models import UserProfile  # noqa: PLC0415
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
+    from sisyphus.resumes.models import Resume  # noqa: PLC0415
+
+    try:
+        profile = UserProfile.objects.get(id=user_id)
+    except UserProfile.DoesNotExist:
+        return {'error': 'User not found'}
+
+    try:
+        resume = Resume.objects.get(user=profile)
+    except Resume.DoesNotExist:
+        return {'skipped': True, 'reason': 'No resume found'}
+
+    jobs = Job.objects.filter(search_run_id=run_id, status=Job.Status.NEW, populated=True)
+    scored = 0
+    for job in jobs:
+        if job.calculate_score(resume) is not None:
+            scored += 1
+
+    return {'run_id': run_id, 'scored': scored}
