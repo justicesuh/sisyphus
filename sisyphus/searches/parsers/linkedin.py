@@ -164,6 +164,10 @@ class LinkedInParser(BaseParser):
         return jobs
     
     def populate_job(self, job: Job) -> None:
+        if job.status != Job.Status.NEW:
+            logger.warning('Job is not new. Will not populate.')
+            return
+
         tag = self.get(job.url)
         if not tag:
             logger.warning('Job not found, marking as expired.')
