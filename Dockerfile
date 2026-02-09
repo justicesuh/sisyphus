@@ -16,4 +16,5 @@ RUN uv sync --locked
 RUN uv run playwright install --with-deps
 COPY . .
 
-CMD /bin/bash
+EXPOSE 8000
+CMD ["uv", "run", "gunicorn", "sisyphus.wsgi", "--bind", "0.0.0.0:8000"]
