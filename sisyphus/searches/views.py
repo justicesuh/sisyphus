@@ -81,6 +81,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
         is_hybrid = request.POST.get('is_hybrid') == 'on'
         is_onsite = request.POST.get('is_onsite') == 'on'
         is_remote = request.POST.get('is_remote') == 'on'
+        schedule = request.POST.get('schedule', '').strip()
 
         if not keywords or not source_id:
             return render(
@@ -98,6 +99,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
                         'is_hybrid': is_hybrid,
                         'is_onsite': is_onsite,
                         'is_remote': is_remote,
+                        'schedule': schedule,
                     },
                 },
             )
@@ -111,6 +113,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
             is_hybrid=is_hybrid,
             is_onsite=is_onsite,
             is_remote=is_remote,
+            schedule=schedule,
         )
 
         return redirect('searches:search_list')
@@ -139,6 +142,7 @@ def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
         is_hybrid = request.POST.get('is_hybrid') == 'on'
         is_onsite = request.POST.get('is_onsite') == 'on'
         is_remote = request.POST.get('is_remote') == 'on'
+        schedule = request.POST.get('schedule', '').strip()
 
         if not keywords or not source_id:
             return render(
@@ -159,6 +163,7 @@ def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
         search.is_hybrid = is_hybrid
         search.is_onsite = is_onsite
         search.is_remote = is_remote
+        search.schedule = schedule
         search.save()
 
         return redirect('searches:search_detail', uuid=search.uuid)

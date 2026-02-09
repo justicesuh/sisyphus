@@ -72,6 +72,12 @@
                         </div>
                     </div>
 
+                    <div class="mb-3">
+                        <label for="schedule" class="form-label">Schedule</label>
+                        <input type="text" name="schedule" id="schedule" class="form-control" placeholder="e.g. 0 */6 * * *" value="{% if form_data %}{{ form_data.schedule }}{% elif search %}{{ search.schedule }}{% endif %}">
+                        <div class="form-text">Cron expression. Leave blank to disable automatic execution.</div>
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">{% if search %}Save Changes{% else %}Create Search{% endif %}</button>
                         <a href="{% if search %}{% url 'searches:search_detail' search.uuid %}{% else %}{% url 'searches:search_list' %}{% endif %}" class="btn btn-outline-secondary">Cancel</a>

@@ -1,3 +1,4 @@
+import json
 from enum import IntEnum
 
 from django.db import models
@@ -48,6 +49,13 @@ class Search(UUIDModel):
 
     last_executed_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=7, choices=Status.choices, default=Status.IDLE)
+
+    schedule = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        help_text='Cron expression (e.g. "0 */6 * * *" for every 6 hours). Leave blank to disable.',
+    )
 
     class Meta:
         verbose_name = 'search'
@@ -106,6 +114,38 @@ class Search(UUIDModel):
             self.last_executed_at = timezone.now()
             update_fields.append('last_executed_at')
         self.save(update_fields=update_fields)
+
+    def sync_schedule(self) -> None:
+        """Sync the schedule field to a django-celery-beat PeriodicTask."""
+        from django_celery_beat.models import CrontabSchedule, PeriodicTask  # noqa: PLC0415
+
+        task_name = f'search-{self.uuid}'
+
+        if not self.schedule or not self.is_active:
+            PeriodicTask.objects.filter(name=task_name).delete()
+            return
+
+        parts = self.schedule.split()
+        if len(parts) != 5:
+            return
+
+        crontab, _ = CrontabSchedule.objects.get_or_create(
+            minute=parts[0],
+            hour=parts[1],
+            day_of_week=parts[2],
+            day_of_month=parts[3],
+            month_of_year=parts[4],
+        )
+
+        PeriodicTask.objects.update_or_create(
+            name=task_name,
+            defaults={
+                'task': 'sisyphus.searches.tasks.execute_search',
+                'crontab': crontab,
+                'args': json.dumps([self.id, self.user_id]),
+                'enabled': True,
+            },
+        )
 
 
 class SearchRun(UUIDModel):
