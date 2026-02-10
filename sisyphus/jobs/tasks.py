@@ -1,8 +1,11 @@
 import json
+import logging
 import re
 from typing import Any
 
 import django_rq
+
+logger = logging.getLogger(__name__)
 
 
 def parse_json_response(response: str) -> dict[str, Any]:
@@ -107,7 +110,7 @@ def populate_unpopulated_jobs():
             if name not in parser_map:
                 parser_map[name] = PARSERS.get(name)()
             parser_map[name].populate_job(job)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception('%s', e)
     for parser in parser_map.values():
         parser.close()
