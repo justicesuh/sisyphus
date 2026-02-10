@@ -65,20 +65,20 @@ class Search(UUIDModel):
         return self.keywords
     
     @property
-    def flexibility(self) -> str | None:
+    def flexibility(self) -> str:
         """Compute job flexibility based on Search booleans.
-        
-        Return None if multiple booleans are True.
+
+        Return empty string if multiple or no booleans are True.
         """
-        if sum(self.is_hybrid, self.is_onsite, self.is_remote) != 1:
-            return None
+        if sum([self.is_hybrid, self.is_onsite, self.is_remote]) != 1:
+            return ''
         if self.is_hybrid:
             return Job.Flexibility.HYBRID
         if self.is_onsite:
             return Job.Flexibility.ONSITE
         if self.is_remote:
             return Job.Flexibility.REMOTE
-        return None
+        return ''
 
     @property
     def geo_id(self):
