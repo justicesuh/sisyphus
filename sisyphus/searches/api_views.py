@@ -19,13 +19,24 @@ class SearchViewSet(ModelViewSet):
         return Search.objects.filter(user=self.get_profile()).select_related('source', 'location')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.get_profile())
+        search = serializer.save(user=self.get_profile())
+        search.sync_schedule()
+
+    def perform_update(self, serializer):
+        search = serializer.save()
+        search.sync_schedule()
+
+    def perform_destroy(self, instance):
+        from django_celery_beat.models import PeriodicTask  # noqa: PLC0415
+        PeriodicTask.objects.filter(name=f'search-{instance.uuid}').delete()
+        instance.delete()
 
     @action(detail=True, methods=['post'])
     def toggle(self, request, uuid=None):
         search = self.get_object()
         search.is_active = not search.is_active
         search.save(update_fields=['is_active'])
+        search.sync_schedule()
         return Response(SearchSerializer(search).data)
 
     @action(detail=True, methods=['post'])

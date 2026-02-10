@@ -124,7 +124,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
                 },
             )
 
-        Search.objects.create(
+        search = Search.objects.create(
             user=profile,
             keywords=keywords,
             source_id=source_id,
@@ -135,6 +135,7 @@ def search_create(request: HttpRequest) -> HttpResponse:
             is_remote=is_remote,
             schedule=schedule,
         )
+        search.sync_schedule()
 
         return redirect('searches:search_list')
 
@@ -204,6 +205,7 @@ def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
         search.is_remote = is_remote
         search.schedule = schedule
         search.save()
+        search.sync_schedule()
 
         return redirect('searches:search_detail', uuid=search.uuid)
 
@@ -244,6 +246,7 @@ def search_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     search = get_object_or_404(Search, uuid=uuid, user=profile)
     search.is_active = not search.is_active
     search.save(update_fields=['is_active'])
+    search.sync_schedule()
 
     return redirect('searches:search_list')
 
@@ -256,6 +259,8 @@ def search_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     search = get_object_or_404(Search, uuid=uuid, user=profile)
+    from django_celery_beat.models import PeriodicTask  # noqa: PLC0415
+    PeriodicTask.objects.filter(name=f'search-{search.uuid}').delete()
     search.delete()
 
     return redirect('searches:search_list')

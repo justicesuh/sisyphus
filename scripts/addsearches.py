@@ -3,16 +3,21 @@ import sys
 
 import requests
 
-if len(sys.argv) != 4:
-    print(f'Usage: {sys.argv[0]} <email> <password> <searches.json>')
-    sys.exit(1)
+# if len(sys.argv) != 4:
+#     print(f'Usage: {sys.argv[0]} <email> <password> <searches.json>')
+#     sys.exit(1)
 
-email, password, searches_file = sys.argv[1], sys.argv[2], sys.argv[3]
+# email, password, searches_file = sys.argv[1], sys.argv[2], sys.argv[3]
+
+email = 'justice.suh@gmail.com'
+password = 'Thompson159!'
+searches_file = 'scripts/searches.json'
 
 with open(searches_file) as f:
     searches_data = json.load(f)
 
-BASE_URL = 'http://localhost:8000'
+# BASE_URL = 'http://localhost:8000'
+BASE_URL = 'https://sisyphus.justicesuh.com:8000'
 
 response = requests.post(f'{BASE_URL}/api/token/', json={'email': email, 'password': password})
 if response.status_code != 200:
