@@ -61,6 +61,8 @@ def execute_search(search_id: int, user_id: int) -> dict:
     from sisyphus.searches.models import Search  # noqa: PLC0415
 
     search = Search.objects.get(id=search_id)
+    if not search.is_active:
+        return {'skipped': True, 'reason': 'Search is not active'}
     if search.status in (Search.Status.QUEUED, Search.Status.RUNNING):
         return {'skipped': True, 'reason': 'Search is already in progress'}
 
@@ -71,7 +73,7 @@ def execute_search(search_id: int, user_id: int) -> dict:
 
     apply_all_rules(user_id)
     populate_jobs(result['run_id'])
-    apply_all_rules(user_id)
+    # apply_all_rules(user_id)
     score_new_jobs(result['run_id'], user_id)
 
     return result
@@ -93,12 +95,14 @@ def populate_jobs(run_id: int) -> dict:
     parser = parser_cls()
     populated = 0
 
-    try:
-        for job in Job.objects.filter(search_run=run, populated=False):
+    for job in Job.objects.filter(search_run=run, populated=False):
+        try:
             parser.populate_job(job)
             populated += 1
-    finally:
-        parser.close()
+        except Exception:
+            pass
+
+    parser.close()
 
     return {
         'run_id': run_id,
@@ -125,7 +129,10 @@ def score_new_jobs(run_id: int, user_id: int) -> dict:
     jobs = Job.objects.filter(search_run_id=run_id, status=Job.Status.NEW, populated=True)
     scored = 0
     for job in jobs:
-        if job.calculate_score(resume) is not None:
-            scored += 1
+        try:
+            if job.calculate_score(resume) is not None:
+                scored += 1
+        except Exception:
+            pass
 
     return {'run_id': run_id, 'scored': scored}

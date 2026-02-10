@@ -1,9 +1,13 @@
 from rest_framework import serializers
 
-from sisyphus.searches.models import Search, SearchRun
+from sisyphus.jobs.models import Location
+from sisyphus.searches.models import Search, SearchRun, Source
 
 
 class SearchSerializer(serializers.ModelSerializer):
+    source = serializers.SlugRelatedField(slug_field='name', queryset=Source.objects.all())
+    location = serializers.SlugRelatedField(slug_field='name', queryset=Location.objects.all())
+
     class Meta:
         model = Search
         fields = (
