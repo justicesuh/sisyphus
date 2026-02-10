@@ -47,30 +47,34 @@ class JobManager(models.Manager):
     
     def add_job(self, job: dict, search_run: 'SearchRun') -> bool:
         """Add parsed job to database."""
-        user = search_run.search.user
+        try:
+            user = search_run.search.user
 
-        company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], user=user, defaults={'name': job['company']})
-        if company.is_banned:
+            company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], user=user, defaults={'name': job['company']})
+            if company.is_banned:
+                return False
+
+            location = None
+            if job['location'] is not None:
+                location, _  = Location.objects.get_or_create(name=job['location'])
+
+            _, created = self.get_or_create(
+                url=job['url'],
+                user=user,
+                defaults={
+                    'company': company,
+                    'title': job['title'],
+                    'location': location,
+                    'date_posted': self.parse_datetime(job['date_posted']),
+                    'search_run': search_run,
+                    'date_found': self.parse_datetime(job['date_found']),
+                    'flexibility': search_run.search.flexibility,
+                }
+            )
+            return created
+        except Exception as e:
+            logger.exception('Error adding job: %s', e)
             return False
-
-        location = None
-        if job['location'] is not None:
-            location, _  = Location.objects.get_or_create(name=job['location'])
-
-        _, created = self.get_or_create(
-            url=job['url'],
-            user=user,
-            defaults={
-                'company': company,
-                'title': job['title'],
-                'location': location,
-                'date_posted': self.parse_datetime(job['date_posted']),
-                'search_run': search_run,
-                'date_found': self.parse_datetime(job['date_found']),
-                'flexibility': search_run.search.flexibility,
-            }
-        )
-        return created
     
     def add_jobs(self, jobs: list[dict], search_run: 'SearchRun') -> int:
         return sum(1 for job in jobs if self.add_job(job, search_run))
