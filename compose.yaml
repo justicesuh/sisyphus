@@ -37,6 +37,8 @@ services:
     container_name: sisyphus_rq_worker
     command: uv run manage.py rqworker --with-scheduler default
     env_file: .env
+    environment:
+      - DJANGO_ALLOW_ASYNC_UNSAFE=true
     links:
       - postgres:postgres
       - redis:redis
