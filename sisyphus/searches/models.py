@@ -87,6 +87,22 @@ class Search(UUIDModel):
             return Location.WORLDWIDE
         return int(geo_id)
 
+    @classmethod
+    def find_duplicate(
+        cls,
+        user: UserProfile,
+        keywords: str,
+        source: Source,
+        location: Location | None,
+        easy_apply: bool = False,
+        exclude_search: Search | None = None,
+    ) -> Search | None:
+        """Find an existing search with the same keywords, source, and location."""
+        qs = cls.objects.filter(user=user, keywords=keywords, source=source, location=location, easy_apply=easy_apply)
+        if exclude_search:
+            qs = qs.exclude(pk=exclude_search.pk)
+        return qs.first()
+
     def calculate_period(self) -> int:
         """Return the multiple of a Period value closest to the time elapsed."""
         if not self.last_executed_at:

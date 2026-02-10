@@ -53,6 +53,7 @@
                 </th>
                 <th>Location</th>
                 <th>Source</th>
+                <th>Easy Apply</th>
                 <th>Status</th>
                 <th>Active</th>
                 <th>
@@ -69,6 +70,13 @@
                 <td><a href="{% url 'searches:search_detail' search.uuid %}">{{ search.keywords }}</a></td>
                 <td>{{ search.location|default:"-" }}</td>
                 <td>{{ search.source }}</td>
+                <td>
+                    {% if search.easy_apply %}
+                    <span class="badge bg-success">Yes</span>
+                    {% else %}
+                    <span class="badge bg-secondary">No</span>
+                    {% endif %}
+                </td>
                 <td>
                     {% if search.status == 'success' %}
                     <span class="badge bg-success">{{ search.get_status_display }}</span>
@@ -112,7 +120,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center text-muted py-4">No searches found</td>
+                <td colspan="8" class="text-center text-muted py-4">No searches found</td>
             </tr>
             {% endfor %}
         </tbody>

@@ -18,6 +18,22 @@ class SearchSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('uuid', 'status', 'last_executed_at', 'created_at', 'updated_at')
 
+    def validate(self, data):
+        user = self.context['request'].user.profile
+        duplicate = Search.find_duplicate(
+            user=user,
+            keywords=data.get('keywords', ''),
+            source=data.get('source'),
+            location=data.get('location'),
+            easy_apply=data.get('easy_apply', False),
+            exclude_search=self.instance,
+        )
+        if duplicate:
+            raise serializers.ValidationError(
+                f'A search with these keywords, source, and location already exists: "{duplicate.keywords}"'
+            )
+        return data
+
 
 class SearchRunSerializer(serializers.ModelSerializer):
     class Meta:

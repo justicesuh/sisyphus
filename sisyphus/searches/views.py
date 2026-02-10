@@ -83,6 +83,17 @@ def search_create(request: HttpRequest) -> HttpResponse:
         is_remote = request.POST.get('is_remote') == 'on'
         schedule = request.POST.get('schedule', '').strip()
 
+        form_data = {
+            'keywords': keywords,
+            'source': source_id,
+            'location': location_id,
+            'easy_apply': easy_apply,
+            'is_hybrid': is_hybrid,
+            'is_onsite': is_onsite,
+            'is_remote': is_remote,
+            'schedule': schedule,
+        }
+
         if not keywords or not source_id:
             return render(
                 request,
@@ -91,16 +102,25 @@ def search_create(request: HttpRequest) -> HttpResponse:
                     'error': 'Keywords and source are required.',
                     'sources': Source.objects.all(),
                     'locations': Location.objects.all(),
-                    'form_data': {
-                        'keywords': keywords,
-                        'source': source_id,
-                        'location': location_id,
-                        'easy_apply': easy_apply,
-                        'is_hybrid': is_hybrid,
-                        'is_onsite': is_onsite,
-                        'is_remote': is_remote,
-                        'schedule': schedule,
-                    },
+                    'form_data': form_data,
+                },
+            )
+
+        duplicate = Search.find_duplicate(
+            user=profile,
+            keywords=keywords,
+            source_id=source_id,
+            location_id=location_id or None,
+        )
+        if duplicate:
+            return render(
+                request,
+                'searches/search_form.html',
+                {
+                    'error': f'A search with these keywords, source, and location already exists: "{duplicate.keywords}"',
+                    'sources': Source.objects.all(),
+                    'locations': Location.objects.all(),
+                    'form_data': form_data,
                 },
             )
 
@@ -151,6 +171,25 @@ def search_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
                 {
                     'search': search,
                     'error': 'Keywords and source are required.',
+                    'sources': Source.objects.all(),
+                    'locations': Location.objects.all(),
+                },
+            )
+
+        duplicate = Search.find_duplicate(
+            user=profile,
+            keywords=keywords,
+            source_id=source_id,
+            location_id=location_id or None,
+            exclude_search=search,
+        )
+        if duplicate:
+            return render(
+                request,
+                'searches/search_form.html',
+                {
+                    'search': search,
+                    'error': f'A search with these keywords, source, and location already exists: "{duplicate.keywords}"',
                     'sources': Source.objects.all(),
                     'locations': Location.objects.all(),
                 },
