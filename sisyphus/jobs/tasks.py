@@ -101,7 +101,7 @@ def populate_unpopulated_jobs():
     from sisyphus.searches.parsers import PARSERS
     
     parser_map = {}
-    for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False, source__isnull=False):
+    for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False):
         try:
             name = job.source.parser
             if name not in parser_map:
