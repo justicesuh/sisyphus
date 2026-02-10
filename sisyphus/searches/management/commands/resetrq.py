@@ -13,7 +13,6 @@ class Command(BaseCommand):
         for worker in workers:
             if worker.get_current_job():
                 send_stop_job_command(q.connection, worker.get_current_job().id)
-            worker.request_stop()
         finished = q.finished_job_registry
         for job_id in finished.get_job_ids():
             finished.remove(job_id, delete=True)
