@@ -110,6 +110,7 @@ class Job(UUIDModel):
     location = models.ForeignKey(Location, related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     date_posted = models.DateTimeField(null=True, blank=True)
 
+    source = models.ForeignKey('searches.Source', related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     search_run = models.ForeignKey('searches.SearchRun', related_name='jobs', on_delete=models.SET_NULL, null=True, blank=True)
     date_found = models.DateTimeField(null=True, blank=True)
     populated = models.BooleanField(default=False)

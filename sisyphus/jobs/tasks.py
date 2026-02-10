@@ -93,3 +93,21 @@ Resume:
         raise
     else:
         return result
+
+
+@django_rq.job
+def populate_unpopulated_jobs():
+    from sisyphus.jobs.models import Job
+    from sisyphus.searches.parsers import PARSERS
+    
+    parser_map = {}
+    for job in Job.objects.select_related('source').filter(populated=False, source__isnull=False):
+        try:
+            name = job.source.parser
+            if name not in parser_map:
+                parser_map[name] = PARSERS.get(name)()
+            parser_map[name].populate_job(job)
+        except Exception:
+            pass
+    for parser in parser_map.values():
+        parser.close()
