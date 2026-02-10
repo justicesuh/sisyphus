@@ -76,7 +76,7 @@ def execute_search(search_id: int, user_id: int) -> dict:
     ban_jobs_with_banned_company()
     populate_jobs(result['run_id'])
     # apply_all_rules(user_id)
-    score_new_jobs(result['run_id'], user_id)
+    # score_new_jobs(result['run_id'], user_id)
 
     return result
 
