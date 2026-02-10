@@ -15,8 +15,8 @@ class Command(BaseCommand):
                 send_stop_job_command(q.connection, worker.get_current_job().id)
         finished = q.finished_job_registry
         for job_id in finished.get_job_ids():
-            finished.remove(job_id, delete=True)
+            finished.remove(job_id, delete_job=True)
         failed = q.failed_job_registry
         for job_id in failed.get_job_ids():
-            failed.remove(job_id, delete=True)
+            failed.remove(job_id, delete_job=True)
         
