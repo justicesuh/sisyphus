@@ -15,6 +15,19 @@ def parse_json_response(response: str) -> dict[str, Any]:
 
 
 @django_rq.job
+def ban_jobs_with_banned_company() -> int:
+    """Ban all jobs whose company is banned but whose status is not banned."""
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
+
+    jobs = Job.objects.filter(company__is_banned=True).exclude(status=Job.Status.BANNED)
+    count = 0
+    for job in jobs:
+        job.update_status(Job.Status.BANNED)
+        count += 1
+    return count
+
+
+@django_rq.job
 def calculate_job_score(job_id: int, resume_id: int) -> dict[str, Any]:
     """Calculate a fit score between a job and a resume using OpenAI."""
     from sisyphus.core.services import get_openai  # noqa: PLC0415

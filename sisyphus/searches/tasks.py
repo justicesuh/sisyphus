@@ -57,6 +57,7 @@ def run_search(search_id: int) -> dict:
 @django_rq.job
 def execute_search(search_id: int, user_id: int) -> dict:
     """Run a full search pipeline: scrape, apply rules, populate, apply rules, score."""
+    from sisyphus.jobs.tasks import ban_jobs_with_banned_company
     from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
     from sisyphus.searches.models import Search  # noqa: PLC0415
 
@@ -72,6 +73,7 @@ def execute_search(search_id: int, user_id: int) -> dict:
         return result
 
     apply_all_rules(user_id)
+    ban_jobs_with_banned_company()
     populate_jobs(result['run_id'])
     # apply_all_rules(user_id)
     score_new_jobs(result['run_id'], user_id)
