@@ -188,6 +188,7 @@ REDIS_URL = env('REDIS_URL')
 RQ_QUEUES = {
     'default': {
         'URL': REDIS_URL,
+        'DEFAULT_TIMEOUT': 43200,
     },
 }
 
