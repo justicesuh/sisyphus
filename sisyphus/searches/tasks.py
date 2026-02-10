@@ -1,12 +1,12 @@
 import logging
 
-from celery import shared_task
+import django_rq
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
+@django_rq.job
 def run_search(search_id: int) -> dict:
     """Execute a search using its source's parser."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415
@@ -54,7 +54,7 @@ def run_search(search_id: int) -> dict:
     }
 
 
-@shared_task
+@django_rq.job
 def execute_search(search_id: int, user_id: int) -> dict:
     """Run a full search pipeline: scrape, apply rules, populate, apply rules, score."""
     from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
@@ -79,7 +79,7 @@ def execute_search(search_id: int, user_id: int) -> dict:
     return result
 
 
-@shared_task
+@django_rq.job
 def populate_jobs(run_id: int) -> dict:
     """Populate unpopulated jobs for a search run."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415

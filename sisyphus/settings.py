@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_beat',
+    'django_rq',
     'django_htmx',
     'rest_framework',
     'drf_spectacular',
@@ -183,15 +183,13 @@ LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'metrics:index'
 LOGOUT_REDIRECT_URL = 'metrics:index'
 
-# Celery configuration
-CELERY_BROKER_URL = env('REDIS_URL')
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_WORKER_CONCURRENCY = 1
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+REDIS_URL = env('REDIS_URL')
+
+RQ_QUEUES = {
+    'default': {
+        'URL': REDIS_URL,
+    },
+}
 
 # Simple JWT
 SIMPLE_JWT = {

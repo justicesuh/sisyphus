@@ -259,8 +259,8 @@ def search_delete(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     search = get_object_or_404(Search, uuid=uuid, user=profile)
-    from django_celery_beat.models import PeriodicTask  # noqa: PLC0415
-    PeriodicTask.objects.filter(name=f'search-{search.uuid}').delete()
+    search.schedule = ''
+    search.sync_schedule()
     search.delete()
 
     return redirect('searches:search_list')

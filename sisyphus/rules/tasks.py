@@ -1,9 +1,9 @@
 from typing import Any
 
-from celery import shared_task
+import django_rq
 
 
-@shared_task
+@django_rq.job
 def apply_all_rules(user_id: int) -> dict[str, Any]:
     """Apply all active rules for a user to eligible jobs."""
     from sisyphus.accounts.models import UserProfile  # noqa: PLC0415
@@ -32,7 +32,7 @@ def apply_all_rules(user_id: int) -> dict[str, Any]:
     return {'matched_count': matched_count}
 
 
-@shared_task
+@django_rq.job
 def apply_rule_to_existing_jobs(rule_id: int) -> dict[str, Any]:
     """Apply a single rule to all eligible jobs."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415

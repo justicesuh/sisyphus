@@ -4,7 +4,7 @@ from sisyphus.searches.models import Search
 
 
 class Command(BaseCommand):
-    help = 'Sync celery beat schedules for all searches'
+    help = 'Sync rq-scheduler cron jobs for all searches'
 
     def handle(self, *args, **options):
         searches = Search.objects.all()

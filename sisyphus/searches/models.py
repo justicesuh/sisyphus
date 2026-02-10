@@ -132,35 +132,33 @@ class Search(UUIDModel):
         self.save(update_fields=update_fields)
 
     def sync_schedule(self) -> None:
-        """Sync the schedule field to a django-celery-beat PeriodicTask."""
-        from django_celery_beat.models import CrontabSchedule, PeriodicTask  # noqa: PLC0415
+        """Sync the schedule field to an rq-scheduler cron job."""
+        import django_rq  # noqa: PLC0415
+        from rq_scheduler import Scheduler  # noqa: PLC0415
 
+        from sisyphus.searches.tasks import execute_search  # noqa: PLC0415
+
+        scheduler = Scheduler(connection=django_rq.get_connection())
         task_name = f'search-{self.uuid}'
 
+        # Cancel any existing scheduled job for this search
+        for scheduled_job in scheduler.get_jobs():
+            if scheduled_job.meta.get('task_name') == task_name:
+                scheduler.cancel(scheduled_job)
+
         if not self.schedule or not self.is_active:
-            PeriodicTask.objects.filter(name=task_name).delete()
             return
 
         parts = self.schedule.split()
         if len(parts) != 5:
             return
 
-        crontab, _ = CrontabSchedule.objects.get_or_create(
-            minute=parts[0],
-            hour=parts[1],
-            day_of_week=parts[2],
-            day_of_month=parts[3],
-            month_of_year=parts[4],
-        )
-
-        PeriodicTask.objects.update_or_create(
-            name=task_name,
-            defaults={
-                'task': 'sisyphus.searches.tasks.execute_search',
-                'crontab': crontab,
-                'args': json.dumps([self.id, self.user_id]),
-                'enabled': True,
-            },
+        scheduler.cron(
+            self.schedule,
+            func=execute_search,
+            args=[self.id, self.user_id],
+            meta={'task_name': task_name},
+            queue_name='default',
         )
 
 

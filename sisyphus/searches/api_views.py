@@ -27,8 +27,8 @@ class SearchViewSet(ModelViewSet):
         search.sync_schedule()
 
     def perform_destroy(self, instance):
-        from django_celery_beat.models import PeriodicTask  # noqa: PLC0415
-        PeriodicTask.objects.filter(name=f'search-{instance.uuid}').delete()
+        instance.schedule = ''
+        instance.sync_schedule()
         instance.delete()
 
     @action(detail=True, methods=['post'])

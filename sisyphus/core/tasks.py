@@ -1,13 +1,13 @@
-from celery import shared_task
+import django_rq
 
 
-@shared_task
+@django_rq.job
 def add(x: int, y: int) -> int:
-    """Add two numbers to verify Celery is working."""
+    """Add two numbers to verify the worker is running."""
     return x + y
 
 
-@shared_task
+@django_rq.job
 def ping() -> str:
     """Return pong as a health check."""
     return 'pong'

@@ -32,22 +32,10 @@ services:
     ports:
       - 6379:6379
     restart: unless-stopped
-  celery-worker:
+  rq-worker:
     build: .
-    container_name: sisyphus_celery_worker
-    command: uv run celery -A sisyphus worker -l info
-    env_file: .env
-    links:
-      - postgres:postgres
-      - redis:redis
-    restart: unless-stopped
-    volumes:
-      - ./:/usr/app
-    working_dir: /usr/app
-  celery-beat:
-    build: .
-    container_name: sisyphus_celery_beat
-    command: uv run celery -A sisyphus beat -l info
+    container_name: sisyphus_rq_worker
+    command: uv run manage.py rqworker --with-scheduler default
     env_file: .env
     links:
       - postgres:postgres

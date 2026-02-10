@@ -2,7 +2,7 @@ import json
 import re
 from typing import Any
 
-from celery import shared_task
+import django_rq
 
 
 def parse_json_response(response: str) -> dict[str, Any]:
@@ -14,8 +14,8 @@ def parse_json_response(response: str) -> dict[str, Any]:
     return json.loads(text)  # type: ignore[no-any-return]
 
 
-@shared_task(bind=True, max_retries=3, retry_backoff=True)
-def calculate_job_score(self: Any, job_id: int, resume_id: int) -> dict[str, Any]:
+@django_rq.job
+def calculate_job_score(job_id: int, resume_id: int) -> dict[str, Any]:
     """Calculate a fit score between a job and a resume using OpenAI."""
     from sisyphus.core.services import get_openai  # noqa: PLC0415
     from sisyphus.jobs.models import Job  # noqa: PLC0415
@@ -74,10 +74,9 @@ Resume:
         job.score_task_id = ''
         job.save(update_fields=['score_task_id'])
         return {'error': 'Failed to parse response', 'raw_response': response}
-    except Exception as exc:
-        if self.request.retries >= self.max_retries:
-            job.score_task_id = ''
-            job.save(update_fields=['score_task_id'])
-        raise self.retry(exc=exc) from exc
+    except Exception:
+        job.score_task_id = ''
+        job.save(update_fields=['score_task_id'])
+        raise
     else:
         return result

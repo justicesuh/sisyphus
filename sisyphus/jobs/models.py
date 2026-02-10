@@ -10,9 +10,9 @@ from sisyphus.accounts.models import UserProfile
 from sisyphus.companies.models import Company
 from sisyphus.core.models import UUIDModel
 
-if TYPE_CHECKING:
-    from celery.result import AsyncResult
+import rq.job
 
+if TYPE_CHECKING:
     from sisyphus.resumes.models import Resume
     from sisyphus.searches.models import SearchRun
 
@@ -141,16 +141,17 @@ class Job(UUIDModel):
         """Create a note for this job."""
         return JobNote.objects.create(job=self, text=text)
 
-    def calculate_score(self, resume: Resume) -> AsyncResult | None:
-        """Queue a Celery task to calculate the job-resume fit score."""
+    def calculate_score(self, resume: Resume) -> rq.job.Job | None:
+        """Queue an RQ job to calculate the job-resume fit score."""
         if self.score is not None:
             return None
 
         if not self.populated:
             return None
 
-        from celery.result import AsyncResult as _AsyncResult  # noqa: PLC0415
+        import django_rq  # noqa: PLC0415
         from django.db import transaction  # noqa: PLC0415
+        from rq import Retry  # noqa: PLC0415
 
         from sisyphus.jobs.tasks import calculate_job_score  # noqa: PLC0415
 
@@ -161,11 +162,20 @@ class Job(UUIDModel):
                 return None
 
             if job.score_task_id:
-                result = _AsyncResult(job.score_task_id)
-                if not result.ready():
-                    return None
+                try:
+                    existing = rq.job.Job.fetch(job.score_task_id, connection=django_rq.get_connection())
+                    if existing.get_status() not in ('finished', 'failed', 'canceled'):
+                        return None
+                except Exception:  # noqa: BLE001
+                    pass
 
-            result = calculate_job_score.delay(self.id, resume.id)
+            queue = django_rq.get_queue()
+            result = queue.enqueue(
+                calculate_job_score,
+                self.id,
+                resume.id,
+                retry=Retry(max=3, interval=[10, 30, 60]),
+            )
             job.score_task_id = result.id
             job.save(update_fields=['score_task_id'])
 
