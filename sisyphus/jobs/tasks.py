@@ -22,7 +22,7 @@ def ban_jobs_with_banned_company() -> int:
     """Ban all jobs whose company is banned but whose status is not banned."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415
 
-    jobs = Job.objects.filter(company__is_banned=True).exclude(status=Job.Status.BANNED)
+    jobs = Job.objects.filter(company__is_banned=True).exclude(status=Job.Status.BANNED).iterator()
     count = 0
     for job in jobs:
         job.update_status(Job.Status.BANNED)
@@ -104,9 +104,13 @@ def populate_unpopulated_jobs():
     from sisyphus.searches.parsers import LinkedInParser
     
     parser = LinkedInParser()
-    for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False):
+    populated = 0
+    for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False).iterator():
         try:
             parser.populate_job(job)
+            populated += 1
+            if populated % 50 == 0:
+                parser.scraper.restart_browser()
         except Exception as e:
             logger.exception('Error parsing job: %s', e)
     parser.close()

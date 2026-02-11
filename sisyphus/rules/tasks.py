@@ -16,7 +16,7 @@ def apply_all_rules(user_id: int) -> dict[str, Any]:
         return {'error': 'User not found'}
 
     rules = Rule.objects.filter(user=profile, is_active=True).prefetch_related('conditions').order_by('-priority')
-    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=True, user=profile)
+    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=True, user=profile).iterator()
 
     matched_count = 0
     for job in jobs:
@@ -46,7 +46,7 @@ def apply_rule_to_existing_jobs(rule_id: int) -> dict[str, Any]:
     if not rule.is_active:
         return {'skipped': True, 'reason': 'Rule is not active'}
 
-    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], user=rule.user)
+    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], user=rule.user).iterator()
     matched_count = 0
 
     for job in jobs:

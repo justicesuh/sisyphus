@@ -97,10 +97,12 @@ def populate_jobs(run_id: int) -> dict:
     parser = parser_cls()
     populated = 0
 
-    for job in Job.objects.filter(search_run=run, populated=False):
+    for job in Job.objects.filter(search_run=run, populated=False).iterator():
         try:
             parser.populate_job(job)
             populated += 1
+            if populated % 50 == 0:
+                parser.scraper.restart_browser()
         except Exception:
             pass
 
