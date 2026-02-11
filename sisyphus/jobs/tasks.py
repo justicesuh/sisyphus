@@ -101,16 +101,12 @@ Resume:
 @django_rq.job
 def populate_unpopulated_jobs():
     from sisyphus.jobs.models import Job
-    from sisyphus.searches.parsers import PARSERS
+    from sisyphus.searches.parsers import LinkedInParser
     
-    parser_map = {}
+    parser = LinkedInParser()
     for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False):
         try:
-            name = job.source.parser
-            if name not in parser_map:
-                parser_map[name] = PARSERS.get(name)()
-            parser_map[name].populate_job(job)
+            parser.populate_job(job)
         except Exception as e:
-            logger.exception('%s', e)
-    for parser in parser_map.values():
-        parser.close()
+            logger.exception('Error parsing job: %s', e)
+    parser.close()
