@@ -46,6 +46,11 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="daily_application_goal" class="form-label">Daily Application Goal</label>
+                        <input type="number" name="daily_application_goal" id="daily_application_goal" class="form-control" value="{{ profile.daily_application_goal }}" min="0">
+                        <div class="form-text">Set to 0 to hide progress bars on the dashboard.</div>
+                    </div>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </form>
             </div>

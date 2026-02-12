@@ -27,7 +27,14 @@ def profile(request: AuthedHttpRequest) -> HttpResponse:
         valid_timezones = [tz[0] for tz in get_timezone_choices()]
         if timezone in valid_timezones:
             user_profile.timezone = timezone
-            user_profile.save()
+
+        try:
+            goal = int(request.POST.get('daily_application_goal', 0))
+        except (TypeError, ValueError):
+            goal = 0
+        user_profile.daily_application_goal = max(goal, 0)
+
+        user_profile.save()
 
         return redirect('accounts:profile')
 

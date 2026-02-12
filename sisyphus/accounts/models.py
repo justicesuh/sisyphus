@@ -106,6 +106,7 @@ class UserProfile(UUIDMixin):
 
     user = models.OneToOneField(User, related_name='profile', on_delete=models.CASCADE)
     timezone = models.CharField(max_length=50, choices=get_timezone_choices, default='UTC', verbose_name='Timezone')
+    daily_application_goal = models.PositiveIntegerField(default=0)
 
     def __str__(self) -> str:
         """Return the user's email."""

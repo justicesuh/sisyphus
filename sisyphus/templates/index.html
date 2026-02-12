@@ -12,7 +12,7 @@
 </div>
 
 {# --- Applied Cards --- #}
-<div class="row g-3 mb-4">
+<div class="row g-3 {% if daily_goal > 0 %}mb-2{% else %}mb-4{% endif %}">
     <div class="col-sm-6 col-lg-3">
         <div class="card h-100">
             <div class="card-body d-flex align-items-start gap-3">
@@ -67,6 +67,49 @@
         </div>
     </div>
 </div>
+
+{% if daily_goal > 0 %}
+{# --- Goal Progress Bars --- #}
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-lg-3">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Goal</span>
+            <span class="text-muted small">{{ goal_today }} / {{ daily_goal }}</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            {% widthratio goal_today daily_goal 100 as pct_today %}
+            <div class="progress-bar {% if goal_today >= daily_goal %}bg-success{% else %}bg-primary{% endif %}"
+                 style="width: {% if pct_today > 100 %}100{% else %}{{ pct_today }}{% endif %}%">
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Goal</span>
+            <span class="text-muted small">{{ goal_7d.applied }} / {{ goal_7d.target }}</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            {% widthratio goal_7d.applied goal_7d.target 100 as pct_7d %}
+            <div class="progress-bar {% if goal_7d.applied >= goal_7d.target %}bg-success{% else %}bg-primary{% endif %}"
+                 style="width: {% if pct_7d > 100 %}100{% else %}{{ pct_7d }}{% endif %}%">
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3">
+        <div class="d-flex justify-content-between mb-1">
+            <span class="text-muted small">Goal</span>
+            <span class="text-muted small">{{ goal_30d.applied }} / {{ goal_30d.target }}</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+            {% widthratio goal_30d.applied goal_30d.target 100 as pct_30d %}
+            <div class="progress-bar {% if goal_30d.applied >= goal_30d.target %}bg-success{% else %}bg-primary{% endif %}"
+                 style="width: {% if pct_30d > 100 %}100{% else %}{{ pct_30d }}{% endif %}%">
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6 col-lg-3"></div>
+</div>
+{% endif %}
 
 {# --- Activity Heatmap --- #}
 <div class="card mb-4">

@@ -163,6 +163,8 @@ def index(request: HttpRequest) -> HttpResponse:
 
     heatmap_data = _build_heatmap(applied_events, user_tz)
 
+    daily_goal = profile.daily_application_goal
+
     return render(
         request,
         'index.html',
@@ -182,5 +184,10 @@ def index(request: HttpRequest) -> HttpResponse:
             'response_rate': response_rate,
             'active_pipeline': active_pipeline,
             'offer_rate': offer_rate,
+            # Goal tracking
+            'daily_goal': daily_goal,
+            'goal_today': applied_today,
+            'goal_7d': {'applied': applied_7d, 'target': daily_goal * 7},
+            'goal_30d': {'applied': applied_30d, 'target': daily_goal * 30},
         },
     )
