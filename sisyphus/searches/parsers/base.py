@@ -15,7 +15,16 @@ class BaseParser:
 
     name: ClassVar[str] = ''
 
+    _instances: ClassVar[dict[type, 'BaseParser']] = {}
+
+    def __new__(cls):
+        if cls not in cls._instances:
+            cls._instances[cls] = super().__new__(cls)
+        return cls._instances[cls]
+
     def __init__(self):
+        if hasattr(self, 'scraper'):
+            return
         self.scraper = Scraper(self.intercept_request)
 
     def intercept_request(self, route) -> bool:
@@ -37,9 +46,16 @@ class BaseParser:
 
     def soupify(self, html: str) -> BeautifulSoup:
         return BeautifulSoup(html, 'html.parser')
-    
+
     def close(self):
-        self.scraper.close()
+        """No-op: singleton parsers persist for the lifetime of the process."""
+
+    @classmethod
+    def shutdown_all(cls):
+        """Shut down all singleton parser instances and their scrapers."""
+        for instance in cls._instances.values():
+            instance.scraper.close()
+        cls._instances.clear()
 
 
 class IPParser(BaseParser):
