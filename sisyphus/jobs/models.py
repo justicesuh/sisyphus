@@ -58,6 +58,11 @@ class JobManager(models.Manager):
             if job['location'] is not None:
                 location, _  = Location.objects.get_or_create(name=job['location'])
 
+            try:
+                source = search_run.search.source
+            except AttributeError:
+                source = None
+
             _, created = self.get_or_create(
                 url=job['url'],
                 user=user,
@@ -69,6 +74,7 @@ class JobManager(models.Manager):
                     'search_run': search_run,
                     'date_found': self.parse_datetime(job['date_found']),
                     'flexibility': search_run.search.flexibility,
+                    'source': source,
                 }
             )
             return created

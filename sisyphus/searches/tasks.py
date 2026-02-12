@@ -15,7 +15,10 @@ def run_search(search_id: int) -> dict:
 
     search = Search.objects.select_related('source', 'location').get(id=search_id)
 
-    parser_cls = PARSERS.get(search.source.parser)
+    try:
+        parser_cls = PARSERS.get(search.source.parser)
+    except AttributeError:
+        parser_cls = None
     if parser_cls is None:
         search.set_status(Search.Status.ERROR)
         return {'error': f'Unknown parser: {search.source.parser}'}
@@ -133,7 +136,10 @@ def populate_job(job_id: int) -> dict:
 
     job = Job.objects.select_related('source').get(id=job_id)
 
-    parser_cls = PARSERS.get(job.source.parser)
+    try:
+        parser_cls = PARSERS.get(job.source.parser)
+    except AttributeError:
+        parser_cls = None
     if parser_cls is None:
         return {'error': f'Unknown parser: {job.source.parser}'}
 
