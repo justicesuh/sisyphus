@@ -113,35 +113,34 @@ def _on_scrape_failure(job, connection, typ, value, traceback):
 
 @django_rq.job
 def populate_jobs(run_id: int) -> dict:
-    """Populate unpopulated jobs for a search run."""
+    """Enqueue individual populate tasks for each unpopulated job in a search run."""
     from sisyphus.jobs.models import Job  # noqa: PLC0415
-    from sisyphus.searches.models import SearchRun  # noqa: PLC0415
+
+    queue = django_rq.get_queue()
+    job_ids = list(Job.objects.filter(search_run_id=run_id, populated=False).values_list('id', flat=True))
+
+    for job_id in job_ids:
+        queue.enqueue(populate_job, job_id)
+
+    return {'run_id': run_id, 'enqueued': len(job_ids)}
+
+
+@django_rq.job
+def populate_job(job_id: int) -> dict:
+    """Populate a single job's details from its source."""
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
     from sisyphus.searches.parsers import PARSERS  # noqa: PLC0415
 
-    run = SearchRun.objects.select_related('search__source').get(id=run_id)
+    job = Job.objects.select_related('source').get(id=job_id)
 
-    parser_cls = PARSERS.get(run.search.source.parser)
+    parser_cls = PARSERS.get(job.source.parser)
     if parser_cls is None:
-        return {'error': f'Unknown parser: {run.search.source.parser}'}
+        return {'error': f'Unknown parser: {job.source.parser}'}
 
     parser = parser_cls()
-    populated = 0
+    parser.populate_job(job)
 
-    for job in Job.objects.filter(search_run=run, populated=False).iterator():
-        try:
-            parser.populate_job(job)
-            populated += 1
-            if populated % 50 == 0:
-                parser.scraper.restart_browser()
-        except Exception:
-            pass
-
-    parser.close()
-
-    return {
-        'run_id': run_id,
-        'populated': populated,
-    }
+    return {'job_id': job_id}
 
 
 def score_new_jobs(run_id: int, user_id: int) -> dict:

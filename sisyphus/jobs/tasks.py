@@ -100,17 +100,16 @@ Resume:
 
 @django_rq.job
 def populate_unpopulated_jobs():
-    from sisyphus.jobs.models import Job
-    from sisyphus.searches.parsers import LinkedInParser
-    
-    parser = LinkedInParser()
-    populated = 0
-    for job in Job.objects.select_related('source').filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False).iterator():
-        try:
-            parser.populate_job(job)
-            populated += 1
-            if populated % 50 == 0:
-                parser.scraper.restart_browser()
-        except Exception as e:
-            logger.exception('Error parsing job: %s', e)
-    parser.close()
+    from sisyphus.jobs.models import Job  # noqa: PLC0415
+    from sisyphus.searches.tasks import populate_job  # noqa: PLC0415
+
+    queue = django_rq.get_queue()
+    job_ids = list(
+        Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=False)
+        .values_list('id', flat=True)
+    )
+
+    for job_id in job_ids:
+        queue.enqueue(populate_job, job_id)
+
+    return {'enqueued': len(job_ids)}
