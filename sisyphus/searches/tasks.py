@@ -56,9 +56,9 @@ def run_search(search_id: int) -> dict:
 
 @django_rq.job
 def execute_search(search_id: int, user_id: int) -> dict:
-    """Run a full search pipeline: scrape, apply rules, populate, apply rules, score."""
-    from sisyphus.jobs.tasks import ban_jobs_with_banned_company
-    from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
+    """Enqueue the search pipeline as chained jobs."""
+    from rq import Callback  # noqa: PLC0415
+
     from sisyphus.searches.models import Search  # noqa: PLC0415
 
     search = Search.objects.get(id=search_id)
@@ -68,17 +68,47 @@ def execute_search(search_id: int, user_id: int) -> dict:
         return {'skipped': True, 'reason': 'Search is already in progress'}
 
     search.set_status(Search.Status.QUEUED)
-    result = run_search(search_id)
+
+    queue = django_rq.get_queue()
+    scrape_job = queue.enqueue(
+        run_search,
+        search_id,
+        on_success=Callback(_on_scrape_success),
+        on_failure=Callback(_on_scrape_failure),
+        meta={'user_id': user_id, 'search_id': search_id},
+    )
+
+    return {'status': 'pipeline_started', 'scrape_job_id': scrape_job.id}
+
+
+def _on_scrape_success(job, connection, result):
+    """After run_search succeeds, enqueue the remaining pipeline steps."""
+    from sisyphus.jobs.tasks import ban_jobs_with_banned_company  # noqa: PLC0415
+    from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
+
     if 'error' in result:
-        return result
+        return
 
-    apply_all_rules(user_id)
-    ban_jobs_with_banned_company()
-    populate_jobs(result['run_id'])
-    # apply_all_rules(user_id)
-    # score_new_jobs(result['run_id'], user_id)
+    user_id = job.meta['user_id']
+    run_id = result['run_id']
+    queue = django_rq.get_queue()
 
-    return result
+    rules_job = queue.enqueue(apply_all_rules, user_id)
+    ban_job = queue.enqueue(ban_jobs_with_banned_company)
+    queue.enqueue(populate_jobs, run_id, depends_on=[rules_job, ban_job])
+
+
+def _on_scrape_failure(job, connection, typ, value, traceback):
+    """Mark the search as errored if run_search fails."""
+    from sisyphus.searches.models import Search  # noqa: PLC0415
+
+    search_id = job.meta.get('search_id')
+    if search_id:
+        try:
+            search = Search.objects.get(id=search_id)
+            search.set_status(Search.Status.ERROR)
+        except Search.DoesNotExist:
+            pass
 
 
 @django_rq.job
