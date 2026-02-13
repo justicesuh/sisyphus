@@ -167,7 +167,7 @@ def job_review(request: HttpRequest) -> HttpResponse:
 
     job = (
         Job.objects.filter(status=filter_status, populated=True, user=profile)
-        .select_related('company', 'location')
+        .select_related('company', 'location', 'search_run__search')
         .order_by('-date_posted')
         .first()
     )

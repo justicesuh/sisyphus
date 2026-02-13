@@ -55,6 +55,14 @@
         <p class="text-muted mb-0">No description available.</p>
         {% endif %}
     </div>
+    <div class="card-footer text-muted small d-flex justify-content-between">
+        <span>
+            {% if job.search_run and job.search_run.search %}
+            Search: {{ job.search_run.search.keywords }}
+            {% endif %}
+        </span>
+        <a href="{% url 'admin:jobs_job_change' job.pk %}" class="text-muted">Admin</a>
+    </div>
 </div>
 
 <div class="d-flex justify-content-center flex-wrap gap-2">
