@@ -192,6 +192,8 @@ RQ_QUEUES = {
     },
 }
 
+RQ_SHOW_ADMIN_LINK = True
+
 # Simple JWT
 SIMPLE_JWT = {
     'USER_ID_FIELD': 'uuid',
