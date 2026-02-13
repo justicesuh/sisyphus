@@ -8,3 +8,4 @@ from sisyphus.core.admin import UUIDModelAdmin
 class CompanyAdmin(UUIDModelAdmin):
     list_display = ('name', 'user', 'website', 'is_banned')
     list_filter = ('user', 'is_banned')
+    search_fields = ('name',)
