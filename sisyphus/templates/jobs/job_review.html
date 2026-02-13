@@ -54,18 +54,18 @@
     </div>
 </div>
 
-<div class="d-flex justify-content-center gap-3">
+<div class="d-flex justify-content-center flex-wrap gap-2">
     <form id="form-dismiss" method="post" action="{% url 'jobs:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="dismissed">
-        <button type="submit" class="btn btn-outline-danger btn-lg px-4">
+        <button type="submit" class="btn btn-outline-danger btn-lg">
             <i class="bi bi-x-circle me-1"></i>Dismiss <kbd class="ms-1">D</kbd>
         </button>
     </form>
     <form id="form-expired" method="post" action="{% url 'jobs:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="expired">
-        <button type="submit" class="btn btn-secondary btn-lg px-4">
+        <button type="submit" class="btn btn-secondary btn-lg">
             <i class="bi bi-hourglass-bottom me-1"></i>Expired <kbd class="ms-1">X</kbd>
         </button>
     </form>
@@ -73,7 +73,7 @@
     <form id="form-new" method="post" action="{% url 'jobs:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="new">
-        <button type="submit" class="btn btn-info btn-lg px-4">
+        <button type="submit" class="btn btn-info btn-lg">
             <i class="bi bi-arrow-counterclockwise me-1"></i>New <kbd class="ms-1">N</kbd>
         </button>
     </form>
@@ -81,7 +81,7 @@
     <form id="form-saved" method="post" action="{% url 'jobs:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="saved">
-        <button type="submit" class="btn btn-success btn-lg px-4">
+        <button type="submit" class="btn btn-success btn-lg">
             <i class="bi bi-bookmark-fill me-1"></i>Save <kbd class="ms-1">S</kbd>
         </button>
     </form>
@@ -89,7 +89,7 @@
     <form id="form-applied" method="post" action="{% url 'jobs:job_review_action' job.uuid %}?filter={{ current_filter }}" class="d-inline">
         {% csrf_token %}
         <input type="hidden" name="status" value="applied">
-        <button type="submit" class="btn btn-primary btn-lg px-4">
+        <button type="submit" class="btn btn-primary btn-lg">
             <i class="bi bi-send-fill me-1"></i>Applied <kbd class="ms-1">A</kbd>
         </button>
     </form>
