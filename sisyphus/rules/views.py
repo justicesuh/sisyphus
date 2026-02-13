@@ -103,6 +103,10 @@ def rule_create(request: HttpRequest) -> HttpResponse:
         for condition in conditions:
             RuleCondition.objects.create(rule=rule, **condition)
 
+        from sisyphus.rules.tasks import apply_rule_to_existing_jobs  # noqa: PLC0415
+
+        apply_rule_to_existing_jobs.delay(rule.id)
+
         return redirect('rules:rule_list')
 
     return render(
@@ -158,6 +162,10 @@ def rule_edit(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
         rule.conditions.all().delete()
         for condition in conditions:
             RuleCondition.objects.create(rule=rule, **condition)
+
+        from sisyphus.rules.tasks import apply_rule_to_existing_jobs  # noqa: PLC0415
+
+        apply_rule_to_existing_jobs.delay(rule.id)
 
         return redirect('rules:rule_list')
 
