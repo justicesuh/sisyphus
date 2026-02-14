@@ -8,9 +8,17 @@
         <h1>Searches</h1>
         <span class="text-muted">{{ page.paginator.count }} searches</span>
     </div>
-    <a href="{% url 'searches:search_create' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Create Search
-    </a>
+    <div class="d-flex gap-2">
+        <form method="post" action="{% url 'searches:search_run_all' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-play-fill"></i> Run All
+            </button>
+        </form>
+        <a href="{% url 'searches:search_create' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Create Search
+        </a>
+    </div>
 </div>
 
 <form method="get" class="row g-3 mb-4">

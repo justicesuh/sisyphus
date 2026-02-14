@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 from sisyphus.accounts.models import UserProfile
 from sisyphus.jobs.models import Location
 from sisyphus.searches.models import Search, Source
+from sisyphus.searches.tasks import execute_search
 
 SORT_OPTIONS = {
     'keywords': 'keywords',
@@ -247,6 +248,19 @@ def search_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
     search.is_active = not search.is_active
     search.save(update_fields=['is_active'])
     search.sync_schedule()
+
+    return redirect('searches:search_list')
+
+
+@login_required
+def search_run_all(request: HttpRequest) -> HttpResponse:
+    """Queue all active searches for execution."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    for search in Search.objects.filter(user=profile, is_active=True):
+        execute_search.delay(search.id, search.user_id)
 
     return redirect('searches:search_list')
 
