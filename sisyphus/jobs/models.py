@@ -65,7 +65,7 @@ class JobManager(models.Manager):
             try:
                 flexibility = search_run.search.flexibility
             except AttributeError:
-                flexibility = None
+                flexibility = ''
 
             try:
                 source = search_run.search.source
