@@ -48,7 +48,11 @@ class JobManager(models.Manager):
     def add_job(self, job: dict, search_run: 'SearchRun') -> bool:
         """Add parsed job to database."""
         try:
-            user = search_run.search.user
+            try:
+                user = search_run.search.user
+            except AttributeError:
+                # TODO: this is a hack, fix later
+                user = UserProfile.objects.first()
 
             company, _ = Company.objects.get_or_create(linkedin_url=job['company_url'], user=user, defaults={'name': job['company']})
             if company.is_banned:
