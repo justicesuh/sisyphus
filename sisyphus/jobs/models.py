@@ -37,7 +37,10 @@ class JobManager(models.Manager):
 
     def parse_datetime(self, datetime_str: str) -> datetime | None:
         """Parse datetime string and make timezone aware."""
-        dt = dateparse.parse_datetime(datetime_str)
+        try:
+            dt = dateparse.parse_datetime(datetime_str)
+        except Exception:
+            dt = None
         if dt is None:
             logger.warning('dateparse.parse_datetime failed for %s. Setting to None', datetime_str)
             return None
