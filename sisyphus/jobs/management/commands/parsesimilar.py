@@ -87,7 +87,8 @@ class Command(BaseCommand):
         logger.info(f'Found {len(similar_jobs)} similar jobs.')
 
         if options['save']:
+            Job.objects.add_jobs(similar_jobs, None)
             for job in jobs:
                 job.similar_jobs_parsed = True
                 job.save(update_fields=['similar_jobs_parsed'])
-            Job.objects.add_jobs(similar_jobs, None)
+
