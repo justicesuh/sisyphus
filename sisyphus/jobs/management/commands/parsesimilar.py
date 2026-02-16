@@ -78,17 +78,13 @@ class Command(BaseCommand):
                 jobs.append(job)
         return jobs
 
-    def print(self, msg: str):
-        logger.info(msg)
-        self.stdout.write(msg)
-
     def handle(self, **options):
         similar_jobs: list[dict] = []
         jobs = Job.objects.filter(status=Job.Status.APPLIED, similar_jobs_parsed=False).exclude(raw_html='')
-        self.print(f'Found {len(jobs)} jobs.')
+        logger.info(f'Found {len(jobs)} jobs.')
         for job in jobs:
             similar_jobs.extend(self.parse_similar_jobs(job))
-        self.print(f'Found {len(similar_jobs)} similar jobs.')
+        logger.info(f'Found {len(similar_jobs)} similar jobs.')
 
         if options['save']:
             for job in jobs:
