@@ -59,6 +59,11 @@ class JobManager(models.Manager):
                 location, _  = Location.objects.get_or_create(name=job['location'])
 
             try:
+                flexibility = search_run.search.flexibility
+            except AttributeError:
+                flexibility = None
+
+            try:
                 source = search_run.search.source
             except AttributeError:
                 source = None
@@ -73,7 +78,7 @@ class JobManager(models.Manager):
                     'date_posted': self.parse_datetime(job['date_posted']),
                     'search_run': search_run,
                     'date_found': self.parse_datetime(job['date_found']),
-                    'flexibility': search_run.search.flexibility,
+                    'flexibility': flexibility,
                     'source': source,
                 }
             )
@@ -124,6 +129,8 @@ class Job(UUIDModel):
     flexibility = models.CharField(max_length=6, choices=Flexibility.choices, default='', blank=True)
 
     raw_html = models.TextField(default='', blank=True)
+    similar_jobs_parsed = models.BooleanField(default=False)
+
     description = models.TextField(default='', blank=True)
     easy_apply = models.BooleanField(default=False)
 
