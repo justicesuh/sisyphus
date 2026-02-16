@@ -84,7 +84,7 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         similar_jobs: list[dict] = []
-        jobs = Job.objects.filter(similar_jobs_parsed=False).exclude(status=Job.Status.NEW).exclude(raw_html='')
+        jobs = Job.objects.filter(status=Job.Status.APPLIED, similar_jobs_parsed=False).exclude(raw_html='')
         self.print(f'Found {len(jobs)} jobs.')
         for job in jobs:
             similar_jobs.extend(self.parse_similar_jobs(job))
