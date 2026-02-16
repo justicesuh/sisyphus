@@ -4,7 +4,7 @@ import django_rq
 
 
 @django_rq.job
-def apply_all_rules(user_id: int) -> dict[str, Any]:
+def apply_all_rules(user_id: int, populated: bool = False) -> dict[str, Any]:
     """Apply all active rules for a user to eligible jobs."""
     from sisyphus.accounts.models import UserProfile  # noqa: PLC0415
     from sisyphus.jobs.models import Job  # noqa: PLC0415
@@ -16,7 +16,7 @@ def apply_all_rules(user_id: int) -> dict[str, Any]:
         return {'error': 'User not found'}
 
     rules = Rule.objects.filter(user=profile, is_active=True).prefetch_related('conditions').order_by('-priority')
-    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=True, user=profile).iterator()
+    jobs = Job.objects.filter(status__in=[Job.Status.NEW, Job.Status.SAVED], populated=populated, user=profile).iterator()
 
     matched_count = 0
     for job in jobs:
