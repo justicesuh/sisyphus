@@ -7,7 +7,7 @@ from sisyphus.jobs.models import Job
 
 
 class Command(BaseCommand):
-    help = 'Calculate scores for all jobs that do not have a score'
+    help = 'Calculate scores for new jobs that do not have a score'
 
     def add_arguments(self, parser: Any) -> None:
         """Add command arguments."""
