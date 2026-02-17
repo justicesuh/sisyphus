@@ -29,7 +29,7 @@ class Command(BaseCommand):
             self.stderr.write(self.style.ERROR(f'No resume found for user "{email}"'))
             return
 
-        jobs = Job.objects.filter(score__isnull=True, populated=True)
+        jobs = Job.objects.filter(status=Job.Status.NEW, score__isnull=True, populated=True)
         count = jobs.count()
         self.stdout.write(f'Found {count} jobs to score')
 
