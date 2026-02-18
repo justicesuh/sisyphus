@@ -165,15 +165,24 @@ def job_review(request: HttpRequest) -> HttpResponse:
     if filter_status not in ['new', 'saved']:
         filter_status = 'new'
 
-    job = (
-        Job.objects.filter(status=filter_status, populated=True, user=profile)
-        .select_related('company', 'location', 'search_run__search')
-        .order_by('-date_posted')
-        .first()
-    )
+
+    if filter_status == 'new':
+        job = (
+            Job.objects.filter(status='new', populated=True, user=profile)
+            .select_related('company', 'location', 'search_run__search')
+            .order_by('-date_posted')
+            .first()
+        )
+    else:
+        job = (
+            Job.objects.filter(status='saved', user=profile)
+            .select_related('company', 'location', 'search_run__search')
+            .order_by('-date_posted')
+            .first()
+        )
 
     new_count = Job.objects.filter(status=Job.Status.NEW, populated=True, user=profile).count()
-    saved_count = Job.objects.filter(status=Job.Status.SAVED, populated=True, user=profile).count()
+    saved_count = Job.objects.filter(status=Job.Status.SAVED, user=profile).count()
 
     return render(
         request,
