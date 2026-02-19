@@ -29,9 +29,15 @@ def run_search(search_id: int) -> dict:
     parser = parser_cls()
 
     try:
-        page_count = parser.get_page_count(search)
+        if parser.name == 'hiringcafe':
+            start = 0
+            state = parser.generate_state(search, period)
+            page_count = parser.get_page_count(state)
+        else:
+            start = 1
+            page_count = parser.get_page_count(search)
 
-        for page in range(1, page_count + 1):
+        for page in range(start, page_count + 1):
             jobs = parser.parse(search, page=page, period=period)
             run.jobs_found += len(jobs)
             run.jobs_created += Job.objects.add_jobs(jobs, run)

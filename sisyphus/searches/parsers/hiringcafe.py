@@ -121,8 +121,10 @@ class HiringCafeParser(BaseParser):
             return 0
         return (count // self.JOBS_PER_PAGE)
 
-    def generate_state(self, term: str):
-        self.search_state['searchQuery'] = term
+    def generate_state(self, search: Search, period: int | None = None) -> str:
+        self.search_state['searchQuery'] = search.keywords
+        if period is not None:
+            pass
         return self.b64encode(self.search_state)
 
     def parse_job(self, result: dict):
@@ -192,10 +194,10 @@ class HiringCafeParser(BaseParser):
             return None
         return job
 
-    def parse(self, term: str = '', page=0):
+    def parse(self, search: Search, page=0, period: int | None = None) -> list[dict]:
         """Parse jobs."""
         jobs: list[dict] = []
-        state = self.generate_state(term)
+        state = self.generate_state(search, period)
         
         url = self.get_search_url('', state, page=page)
         tag = self.get(url)
