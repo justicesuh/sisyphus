@@ -65,17 +65,20 @@ class JobManager(models.Manager):
             if job['location'] is not None:
                 location, _  = Location.objects.get_or_create(name=job['location'])
 
-            try:
-                flexibility = search_run.search.flexibility
-            except AttributeError:
-                flexibility = ''
+            if 'flexibility' in job:
+                flexibility = job['flexibility']
+            else:
+                try:
+                    flexibility = search_run.search.flexibility
+                except AttributeError:
+                    flexibility = ''
 
             try:
                 source = search_run.search.source
             except AttributeError:
                 source = None
 
-            _, created = self.get_or_create(
+            obj, created = self.get_or_create(
                 url=job['url'],
                 user=user,
                 defaults={
@@ -89,6 +92,15 @@ class JobManager(models.Manager):
                     'source': source,
                 }
             )
+
+            # HiringCafe parser
+            if 'description' in job:
+                obj.description = job['description']
+                obj.easy_apply = False
+                obj.raw_html = job.get('raw_html', '')
+                obj.populated = True
+                obj.save(update_fields=['description', 'easy_apply', 'raw_html', 'populated'])
+
             return created
         except Exception as e:
             logger.exception('Error adding job: %s', e)
