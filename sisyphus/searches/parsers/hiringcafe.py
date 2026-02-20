@@ -80,6 +80,29 @@ class HiringCafeParser(BaseParser):
         'maxYearFounded': None
     }
 
+    # not entirely sure how dateFetchedPastNDays
+    # is derived, so use a manual mapping for now
+    #
+    # the upper values probably are not necessary
+    # but wanted to match HiringCafe filters
+    period_mapping = {
+        # -1: -1,       # all time
+        86400: 2,       # 24 hours
+        259200: 4,      # 3 days
+        604800: 14,     # 1 week
+        1209600: 21,    # 2 weeks
+        1814400: 29,    # 3 weeks
+        2592000: 61,    # 1 month
+        5184000: 91,    # 2 months
+        7776000: 121,   # 3 months
+        10368000: 151,  # 4 months
+        12960000: 181,  # 5 months
+        15552000: 211,  # 6 months
+        31536000: 750,  # 1 year
+        63072000: 1080, # 2 years
+        94608000: 1440, # 3 years
+    }
+
     def b64encode(self, data: dict) -> str:
         """Convert given dictionary to urlencoded base64."""
         state = urlencode({'s': json.dumps(data)})[2:].replace('+', ' ')
@@ -124,7 +147,14 @@ class HiringCafeParser(BaseParser):
     def generate_state(self, search: Search, period: int | None = None) -> str:
         self.search_state['searchQuery'] = search.keywords
         if period is not None:
-            pass
+            # TODO: this should really be a separate
+            # calculation but for now hijack LinkedIn
+            # period calculation and manually clamp to
+            # most appropriate mapping from dictionary
+            if search.last_executed_at is None:
+                period = 15552000
+            key = min(self.period_mapping.keys(), key=lambda x: abs(x - period))
+            self.search_state['dateFetchedPastNDays'] = self.period_mapping[key]
         return self.b64encode(self.search_state)
 
     def parse_job(self, result: dict):
