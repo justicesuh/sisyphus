@@ -110,8 +110,8 @@ def search_create(request: HttpRequest) -> HttpResponse:
         duplicate = Search.find_duplicate(
             user=profile,
             keywords=keywords,
-            source_id=source_id,
-            location_id=location_id or None,
+            source=source_id,
+            location=location_id or None,
         )
         if duplicate:
             return render(
