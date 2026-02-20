@@ -9,5 +9,5 @@ class Command(BaseCommand):
             if run.status == SearchRun.Status.RUNNING:
                 run.delete()
         for search in Search.objects.all():
-            if search.status == Search.Status.RUNNING:
+            if search.status == Search.Status.RUNNING or search.status == Search.Status.QUEUED:
                 search.set_status(Search.Status.IDLE)
