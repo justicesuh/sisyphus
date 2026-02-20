@@ -15,6 +15,7 @@ urlpatterns = [
     path('<uuid:uuid>/', views.search_detail, name='search_detail'),
     path('<uuid:uuid>/edit/', views.search_edit, name='search_edit'),
     path('run-all/', views.search_run_all, name='search_run_all'),
+    path('<uuid:uuid>/run/', views.search_run, name='search_run'),
     path('<uuid:uuid>/toggle/', views.search_toggle, name='search_toggle'),
     path('<uuid:uuid>/delete/', views.search_delete, name='search_delete'),
     path('api/', include(router.urls)),

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -21,6 +22,8 @@ from sisyphus.searches.tasks import execute_search
 SORT_OPTIONS = {
     'keywords': 'keywords',
     '-keywords': '-keywords',
+    'source': 'source__name',
+    '-source': '-source__name',
     'last_executed_at': 'last_executed_at',
     '-last_executed_at': '-last_executed_at',
 }
@@ -253,15 +256,33 @@ def search_toggle(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
 
 
 @login_required
+def search_run(request: HttpRequest, uuid: uuid_mod.UUID) -> HttpResponse:
+    """Queue a single search for execution."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    search = get_object_or_404(Search, uuid=uuid, user=profile)
+    execute_search.delay(search.id, search.user_id)
+
+    messages.success(request, f'Search "{search.keywords}" queued for execution.')
+    return redirect('searches:search_list')
+
+
+@login_required
 def search_run_all(request: HttpRequest) -> HttpResponse:
     """Queue all active searches for execution."""
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
-    for search in Search.objects.filter(user=profile, is_active=True):
+    searches = Search.objects.filter(user=profile, is_active=True, source__parser='linkedin')
+    count = 0
+    for search in searches:
         execute_search.delay(search.id, search.user_id)
+        count += 1
 
+    messages.success(request, f'{count} LinkedIn search{"es" if count != 1 else ""} queued for execution.')
     return redirect('searches:search_list')
 
 

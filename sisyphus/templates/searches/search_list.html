@@ -21,6 +21,15 @@
     </div>
 </div>
 
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endfor %}
+{% endif %}
+
 <form method="get" class="row g-3 mb-4">
     <div class="col-auto">
         <input type="text" name="q" class="form-control" placeholder="Search keywords" value="{{ current_search }}" />
@@ -60,7 +69,11 @@
                     </a>
                 </th>
                 <th>Location</th>
-                <th>Source</th>
+                <th>
+                    <a href="?sort={% if current_sort == 'source' %}-source{% else %}source{% endif %}{% if current_search %}&q={{ current_search|urlencode }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_active %}&active={{ current_active }}{% endif %}" class="text-decoration-none text-dark">
+                        Source {% if current_sort == 'source' %}<i class="bi bi-sort-alpha-down"></i>{% elif current_sort == '-source' %}<i class="bi bi-sort-alpha-up"></i>{% endif %}
+                    </a>
+                </th>
                 <th>Easy Apply</th>
                 <th>Status</th>
                 <th>Active</th>
@@ -108,6 +121,12 @@
                 <td>{{ search.last_executed_at|default:"-" }}</td>
                 <td>
                     <div class="btn-group btn-group-sm">
+                        <form method="post" action="{% url 'searches:search_run' search.uuid %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-success" title="Run search">
+                                <i class="bi bi-lightning"></i>
+                            </button>
+                        </form>
                         <form method="post" action="{% url 'searches:search_toggle' search.uuid %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-secondary" title="{% if search.is_active %}Deactivate{% else %}Activate{% endif %}">
