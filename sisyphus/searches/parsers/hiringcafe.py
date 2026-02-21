@@ -234,8 +234,12 @@ class HiringCafeParser(BaseParser):
         if not tag:
             logger.warning('Response for %s is None', url)
             return jobs
-        
-        for result in self.get_json(tag)['results']:
+
+        data = self.get_json(tag)
+        if 'error' in data:
+            raise Exception(data['error'])
+
+        for result in data['results']:
             job = self.parse_job(result)
             if job is not None:
                 jobs.append(job)

@@ -38,9 +38,12 @@ def run_search(search_id: int) -> dict:
             page_count = parser.get_page_count(search)
 
         for page in range(start, page_count + 1):
-            jobs = parser.parse(search, page=page, period=period)
-            run.jobs_found += len(jobs)
-            run.jobs_created += Job.objects.add_jobs(jobs, run)
+            try:
+                jobs = parser.parse(search, page=page, period=period)
+                run.jobs_found += len(jobs)
+                run.jobs_created += Job.objects.add_jobs(jobs, run)
+            except Exception:
+                break
 
         run.status = SearchRun.Status.SUCCESS
         search.set_status(Search.Status.SUCCESS)
