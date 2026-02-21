@@ -1,5 +1,6 @@
 import logging
 import random
+import re
 import time
 from collections.abc import Callable
 from urllib.parse import urlparse
@@ -8,6 +9,75 @@ from django.conf import settings
 from playwright.sync_api import Browser, Playwright, sync_playwright
 
 logger = logging.getLogger(__name__)
+
+_GREASE_CHARS = [' ', '(', ')', '-', '.', '/', ':', ';', '=', '?', '_']
+
+
+def ua_to_client_hints(ua: str) -> dict[str, str]:
+    """Convert a User-Agent string into matching Sec-CH-UA Client Hints headers.
+
+    Returns an empty dict for non-Chromium UAs (Firefox, Safari) since they
+    don't send Client Hints and the underlying Playwright browser is Chromium.
+    """
+    chrome_match = re.search(r'Chrome/(\d+)', ua)
+    if not chrome_match:
+        return {}
+
+    chrome_major = int(chrome_match.group(1))
+
+    # Determine platform
+    if 'Windows' in ua:
+        platform = 'Windows'
+    elif 'Macintosh' in ua:
+        platform = 'macOS'
+    elif 'CrOS' in ua:
+        platform = 'Chrome OS'
+    elif 'Linux' in ua:
+        platform = 'Linux'
+    else:
+        platform = 'Unknown'
+
+    # Determine mobile
+    mobile = '?1' if 'Mobile' in ua else '?0'
+
+    # Determine browser brand and version
+    edge_match = re.search(r'Edg/(\d+)', ua)
+    opera_match = re.search(r'OPR/(\d+)', ua)
+    if edge_match:
+        brand_name = 'Microsoft Edge'
+        brand_version = edge_match.group(1)
+    elif opera_match:
+        brand_name = 'Opera'
+        brand_version = opera_match.group(1)
+    else:
+        brand_name = 'Google Chrome'
+        brand_version = str(chrome_major)
+
+    # Generate GREASE brand (mirrors Chromium's algorithm)
+    c1 = _GREASE_CHARS[chrome_major % len(_GREASE_CHARS)]
+    c2 = _GREASE_CHARS[(chrome_major + 1) % len(_GREASE_CHARS)]
+    grease_brand = f'Not{c1}A{c2}Brand'
+    grease_version = str(chrome_major % 10) if chrome_major >= 120 else '99'
+
+    # Build and permute the brand list (order rotates by major version)
+    brands = [
+        (grease_brand, grease_version),
+        ('Chromium', str(chrome_major)),
+        (brand_name, brand_version),
+    ]
+    order = chrome_major % 3
+    if order == 1:
+        brands = [brands[1], brands[0], brands[2]]
+    elif order == 2:
+        brands = [brands[1], brands[2], brands[0]]
+
+    sec_ch_ua = ', '.join(f'"{b}";v="{v}"' for b, v in brands)
+
+    return {
+        'Sec-CH-UA': sec_ch_ua,
+        'Sec-CH-UA-Mobile': mobile,
+        'Sec-CH-UA-Platform': f'"{platform}"',
+    }
 
 
 class HttpError(Exception):
@@ -143,7 +213,11 @@ class Scraper:
             self._playwright = sync_playwright().start()
 
     def get(self, url: str, *, raise_exception: bool = False, wait_until: str = 'networkidle') -> str:
-        context = self.browser.new_context(user_agent=random.choice(user_agent_list))
+        ua = random.choice(user_agent_list)
+        context = self.browser.new_context(
+            user_agent=ua,
+            extra_http_headers=ua_to_client_hints(ua),
+        )
         try:
             page = context.new_page()
             if self.request_interceptor is not None:
