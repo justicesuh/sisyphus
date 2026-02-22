@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -97,7 +98,7 @@ class JobManager(models.Manager):
             if 'description' in job:
                 obj.description = job['description']
                 obj.easy_apply = False
-                obj.raw_html = job.get('raw_html', '')
+                obj.raw_html = json.dumps(job.get('raw_html', '{}'))
                 obj.populated = True
                 obj.save(update_fields=['description', 'easy_apply', 'raw_html', 'populated'])
 

@@ -162,8 +162,14 @@ class HiringCafeParser(BaseParser):
         job = {}
 
         try:
-            job['company'] = result['v5_processed_job_data']['company_name']
-            job['company_url'] = result['v5_processed_job_data']['company_website']
+            name = result['v5_processed_job_data']['company_name']
+            if name is None and 'enriched_company_data' in result:
+                name = result['enriched_company_data']['name']
+            job['company'] = name
+            url = result['v5_processed_job_data']['company_website']
+            if url is None and 'enriched_company_data' in result:
+                url = result['enriched_company_data']['homepage_uri']
+            job['company_url'] = url
         except Exception:
             logger.exception('Error parsing company information')
             error = 'company'
