@@ -43,7 +43,7 @@
                         </div>
                         <div class="col-md-4">
                             <label for="priority" class="form-label">Priority</label>
-                            <input type="number" name="priority" id="priority" class="form-control" min="0" value="{% if form_data %}{{ form_data.priority }}{% elif rule %}{{ rule.priority }}{% else %}0{% endif %}">
+                            <input type="number" name="priority" id="priority" class="form-control" value="{% if form_data %}{{ form_data.priority }}{% elif rule %}{{ rule.priority }}{% else %}0{% endif %}">
                             <div class="form-text">Higher = evaluated first</div>
                         </div>
                     </div>
