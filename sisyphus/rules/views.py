@@ -263,7 +263,7 @@ def rule_apply_all(request: HtmxHttpRequest) -> HttpResponse:
 
     from sisyphus.rules.tasks import apply_all_rules  # noqa: PLC0415
 
-    apply_all_rules.delay(profile.id)
+    apply_all_rules.delay(profile.id, True)
 
     if request.htmx:
         rules = Rule.objects.filter(user=profile).prefetch_related('conditions')
